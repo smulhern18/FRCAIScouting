@@ -1,0 +1,286 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: the-blue-alliance-preprocessing-
+  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.11, pipelines.kubeflow.org/pipeline_compilation_time: '2022-03-05T22:15:54.835986',
+    pipelines.kubeflow.org/pipeline_spec: '{"inputs": [{"name": "years", "type": "String"}],
+      "name": "The Blue Alliance Preprocessing"}'}
+  labels: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.11}
+spec:
+  entrypoint: the-blue-alliance-preprocessing
+  templates:
+  - name: grab-event-keys-for-year
+    container:
+      args: [--years, '{{inputs.parameters.years}}', '----output-paths', /tmp/outputs/Output/data]
+      command:
+      - sh
+      - -c
+      - (PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location
+        'google-cloud-storage' 'requests' 'datetime' || PIP_DISABLE_PIP_VERSION_CHECK=1
+        python3 -m pip install --quiet --no-warn-script-location 'google-cloud-storage'
+        'requests' 'datetime' --user) && "$0" "$@"
+      - sh
+      - -ec
+      - |
+        program_path=$(mktemp)
+        printf "%s" "$0" > "$program_path"
+        python3 -u "$program_path" "$@"
+      - |
+        def grab_event_keys_for_year(years):
+
+            output_dir_path = 'pulled_events'
+
+            from google.cloud import storage
+            import datetime
+
+            client = storage.Client.from_service_account_info({"type": "service_account","project_id": "theta-byte-342416","private_key_id": "3bb0f4e92c48f894e7bb023330fed3247759f1a8","private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDc3JxLdqz4mCbT\nNSRQFMosWaXKLpTxlofe5DI104TcCsZJCpydGJcVuESP+wgq0D3+0jbroh9hQbN1\n9UF1VKiX0e0h5I8qeQ9NgoMHWYmXjutWhl4n+PpSydEQh7UcIYgsX00uJhPTNWil\ne4i+22Z+QXnzb1+5hPjrD0folvFY4f0OtY64ga8qy5qvConUVhRNiU6lerEJXqA4\nzvPU2MsDsqEMdo30U8X0DJFQTUfOU0WoadBP1Q8jEjqkWMx5ixVUbf95YX2XujoE\njYveYeFekR0Z5JE1ysYepWueuUjEef7N+cfAA2ubJSbXGmQ0YwZl6gcFtJR8+HGA\ncVVzJW6zAgMBAAECggEAIxgE17LYQjn+9VF83yKmi0yFXO5w6UBXf5G37riY5FPr\n9OA0SXwGScO5VT14q0DikPJ7Go7suIn1h5k8WPXmQhVvvhJwszmANns18b2G8Oeb\nOmjoXiagM/Zwe1Vs8DbdydssytfvD4Dti1npPRZkn0wtIgLA7ZwU51jKvsj5OXuH\nnuDyPs1p+llcUQq6jkFKe/TWxp5CGmOVHN7o20/pdM+uwoATUzidnBTv+m8fLs4D\nB/rRm2UzMy1bArZK7RL7PDLIaX7vBdTROjk2MIZh+Rheo16GrwyaNiFl03hzIK1O\n2pCOEaa3XD0+Zn7j+u8iN7x3M4lSP1aUEB3+CwxuTQKBgQD0tU8wFhGgFgKMp2Jp\nbyN9wFsG/CeUe8dSZGXft6eOvtXUrM+30oGX1tz/gOv83gMoR3tLb5C0wpT960KO\nlMt55UGGIjHtzGe6PykRz2opbb2VRTuaNjANVfGlxiuepJChX3ukr3GkhVOQBdQ7\nnSRYVQdR2k90Q69CDk3fzuPF7wKBgQDnDZt90yiDnNi5AqckC91zG7t+dYOfH+Uf\neo6sZBJ5kx7dWzfrjKAYcFaYJ+DKwyX4bgz50HoT75ziQRAa1Bhuk8pVg/4yl33v\nyN9fKIheI0mpJdF9SKjQZASXkh1tIUPnt37fBl9hmxIkU4wJpP8adStad/8fP7G0\nU7cRKv/HfQKBgQDrJzhbmzmAvuXgSBGYBAb1Ft3ijnlyhKf8EyKao5/O2rAdWZua\nqB2EziM9HKSqMKaUFGz1Btbl/X6zq1ogLfiCwL4AqeeU/rJHFd7fkJQSD7T5NriZ\n7qyqhAZdKVxNbRLXICxvC3GHid/NLOzQBKgigkMwczubHFfUgG5xPh0/3QKBgQCY\nSgO+vzro5KyD5Re9ToS7pf/Crjn+28rtIJ6BScRTlYC2bbVB8AJlmUW6LC6h9lZE\nlGTBE4QjN7+z8SZoSHuCBq9KBiG5vtgm/8MauWCIi8G1V1Pou8do80ODk68Jiu9y\n/yMEZPLhJpCimN6oTLRIAAp/KrBhLF44eSUkj67fEQKBgQCeuybLN0HHe13fYdzC\n/vkd/OoHhKjVlX2W1bKT9dDsBXw63vKwLKgKuGoqrVXcmlRqaERy13OmotjnAw7w\nW7Kv86wj8OyNSJ9VVwB/VhhWIcrddR4OR0WIwVxSQWYxFB02GvQTz7RSOc5myyVC\n/2l6MesGFtW8ch5fdLI+29VTxw==\n-----END PRIVATE KEY-----\n","client_email": "tbapreprocessing@theta-byte-342416.iam.gserviceaccount.com","client_id": "110866838631585602751","auth_uri": "https://accounts.google.com/o/oauth2/auth","token_uri": "https://oauth2.googleapis.com/token","auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs","client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/tbapreprocessing%40theta-byte-342416.iam.gserviceaccount.com"})
+
+            # Split input string
+            years = years.split(',')
+
+            # Allocate
+            event_keys = []
+            tba_read_key = 'vSedKwbovtAcDcYzaAl0QjcYwox4xXxC7r5b4zPpNS3X9BC6khgVlGhR3Fox2tYR'
+            format_str = 'https://www.thebluealliance.com/api/v3/events/{year:s}/keys'
+
+            kubeflow_storage_bucket = client.get_bucket('theta-byte-342416-kubeflowpipelines-default')
+
+            output = ''
+
+            for year in years:
+
+                import requests
+
+                events_for_year = requests.get(url=format_str.format(year=year), headers={'X-TBA-Auth-Key': tba_read_key})
+
+                events_json = events_for_year.json()
+
+                for eventKey in events_json:
+                    dir = kubeflow_storage_bucket.blob(output_dir_path+'/'+eventKey)
+                    dir.upload_from_string(eventKey)
+                    output += (eventKey+',')
+
+                print(datetime.datetime.now().date(), datetime.datetime.now().time(), ": Event key obtaining done with", year)
+            return output
+
+        def _serialize_str(str_value: str) -> str:
+            if not isinstance(str_value, str):
+                raise TypeError('Value "{}" has type "{}" instead of str.'.format(
+                    str(str_value), str(type(str_value))))
+            return str_value
+
+        import argparse
+        _parser = argparse.ArgumentParser(prog='Grab event keys for year', description='')
+        _parser.add_argument("--years", dest="years", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("----output-paths", dest="_output_paths", type=str, nargs=1)
+        _parsed_args = vars(_parser.parse_args())
+        _output_files = _parsed_args.pop("_output_paths", [])
+
+        _outputs = grab_event_keys_for_year(**_parsed_args)
+
+        _outputs = [_outputs]
+
+        _output_serializers = [
+            _serialize_str,
+
+        ]
+
+        import os
+        for idx, output_file in enumerate(_output_files):
+            try:
+                os.makedirs(os.path.dirname(output_file))
+            except OSError:
+                pass
+            with open(output_file, 'w') as f:
+                f.write(_output_serializers[idx](_outputs[idx]))
+      image: python:3.7
+    inputs:
+      parameters:
+      - {name: years}
+    outputs:
+      parameters:
+      - name: grab-event-keys-for-year-Output
+        valueFrom: {path: /tmp/outputs/Output/data}
+      artifacts:
+      - {name: grab-event-keys-for-year-Output, path: /tmp/outputs/Output/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.11
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"implementation": {"container":
+          {"args": ["--years", {"inputValue": "years"}, "----output-paths", {"outputPath":
+          "Output"}], "command": ["sh", "-c", "(PIP_DISABLE_PIP_VERSION_CHECK=1 python3
+          -m pip install --quiet --no-warn-script-location ''google-cloud-storage''
+          ''requests'' ''datetime'' || PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m
+          pip install --quiet --no-warn-script-location ''google-cloud-storage'' ''requests''
+          ''datetime'' --user) && \"$0\" \"$@\"", "sh", "-ec", "program_path=$(mktemp)\nprintf
+          \"%s\" \"$0\" > \"$program_path\"\npython3 -u \"$program_path\" \"$@\"\n",
+          "def grab_event_keys_for_year(years):\n\n    output_dir_path = ''pulled_events''\n\n    from
+          google.cloud import storage\n    import datetime\n\n    client = storage.Client.from_service_account_info({\"type\":
+          \"service_account\",\"project_id\": \"theta-byte-342416\",\"private_key_id\":
+          \"3bb0f4e92c48f894e7bb023330fed3247759f1a8\",\"private_key\": \"-----BEGIN
+          PRIVATE KEY-----\\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDc3JxLdqz4mCbT\\nNSRQFMosWaXKLpTxlofe5DI104TcCsZJCpydGJcVuESP+wgq0D3+0jbroh9hQbN1\\n9UF1VKiX0e0h5I8qeQ9NgoMHWYmXjutWhl4n+PpSydEQh7UcIYgsX00uJhPTNWil\\ne4i+22Z+QXnzb1+5hPjrD0folvFY4f0OtY64ga8qy5qvConUVhRNiU6lerEJXqA4\\nzvPU2MsDsqEMdo30U8X0DJFQTUfOU0WoadBP1Q8jEjqkWMx5ixVUbf95YX2XujoE\\njYveYeFekR0Z5JE1ysYepWueuUjEef7N+cfAA2ubJSbXGmQ0YwZl6gcFtJR8+HGA\\ncVVzJW6zAgMBAAECggEAIxgE17LYQjn+9VF83yKmi0yFXO5w6UBXf5G37riY5FPr\\n9OA0SXwGScO5VT14q0DikPJ7Go7suIn1h5k8WPXmQhVvvhJwszmANns18b2G8Oeb\\nOmjoXiagM/Zwe1Vs8DbdydssytfvD4Dti1npPRZkn0wtIgLA7ZwU51jKvsj5OXuH\\nnuDyPs1p+llcUQq6jkFKe/TWxp5CGmOVHN7o20/pdM+uwoATUzidnBTv+m8fLs4D\\nB/rRm2UzMy1bArZK7RL7PDLIaX7vBdTROjk2MIZh+Rheo16GrwyaNiFl03hzIK1O\\n2pCOEaa3XD0+Zn7j+u8iN7x3M4lSP1aUEB3+CwxuTQKBgQD0tU8wFhGgFgKMp2Jp\\nbyN9wFsG/CeUe8dSZGXft6eOvtXUrM+30oGX1tz/gOv83gMoR3tLb5C0wpT960KO\\nlMt55UGGIjHtzGe6PykRz2opbb2VRTuaNjANVfGlxiuepJChX3ukr3GkhVOQBdQ7\\nnSRYVQdR2k90Q69CDk3fzuPF7wKBgQDnDZt90yiDnNi5AqckC91zG7t+dYOfH+Uf\\neo6sZBJ5kx7dWzfrjKAYcFaYJ+DKwyX4bgz50HoT75ziQRAa1Bhuk8pVg/4yl33v\\nyN9fKIheI0mpJdF9SKjQZASXkh1tIUPnt37fBl9hmxIkU4wJpP8adStad/8fP7G0\\nU7cRKv/HfQKBgQDrJzhbmzmAvuXgSBGYBAb1Ft3ijnlyhKf8EyKao5/O2rAdWZua\\nqB2EziM9HKSqMKaUFGz1Btbl/X6zq1ogLfiCwL4AqeeU/rJHFd7fkJQSD7T5NriZ\\n7qyqhAZdKVxNbRLXICxvC3GHid/NLOzQBKgigkMwczubHFfUgG5xPh0/3QKBgQCY\\nSgO+vzro5KyD5Re9ToS7pf/Crjn+28rtIJ6BScRTlYC2bbVB8AJlmUW6LC6h9lZE\\nlGTBE4QjN7+z8SZoSHuCBq9KBiG5vtgm/8MauWCIi8G1V1Pou8do80ODk68Jiu9y\\n/yMEZPLhJpCimN6oTLRIAAp/KrBhLF44eSUkj67fEQKBgQCeuybLN0HHe13fYdzC\\n/vkd/OoHhKjVlX2W1bKT9dDsBXw63vKwLKgKuGoqrVXcmlRqaERy13OmotjnAw7w\\nW7Kv86wj8OyNSJ9VVwB/VhhWIcrddR4OR0WIwVxSQWYxFB02GvQTz7RSOc5myyVC\\n/2l6MesGFtW8ch5fdLI+29VTxw==\\n-----END
+          PRIVATE KEY-----\\n\",\"client_email\": \"tbapreprocessing@theta-byte-342416.iam.gserviceaccount.com\",\"client_id\":
+          \"110866838631585602751\",\"auth_uri\": \"https://accounts.google.com/o/oauth2/auth\",\"token_uri\":
+          \"https://oauth2.googleapis.com/token\",\"auth_provider_x509_cert_url\":
+          \"https://www.googleapis.com/oauth2/v1/certs\",\"client_x509_cert_url\":
+          \"https://www.googleapis.com/robot/v1/metadata/x509/tbapreprocessing%40theta-byte-342416.iam.gserviceaccount.com\"})\n\n    #
+          Split input string\n    years = years.split('','')\n\n    # Allocate\n    event_keys
+          = []\n    tba_read_key = ''vSedKwbovtAcDcYzaAl0QjcYwox4xXxC7r5b4zPpNS3X9BC6khgVlGhR3Fox2tYR''\n    format_str
+          = ''https://www.thebluealliance.com/api/v3/events/{year:s}/keys''\n\n    kubeflow_storage_bucket
+          = client.get_bucket(''theta-byte-342416-kubeflowpipelines-default'')\n\n    output
+          = ''''\n\n    for year in years:\n\n        import requests\n\n        events_for_year
+          = requests.get(url=format_str.format(year=year), headers={''X-TBA-Auth-Key'':
+          tba_read_key})\n\n        events_json = events_for_year.json()\n\n        for
+          eventKey in events_json:\n            dir = kubeflow_storage_bucket.blob(output_dir_path+''/''+eventKey)\n            dir.upload_from_string(eventKey)\n            output
+          += (eventKey+'','')\n\n        print(datetime.datetime.now().date(), datetime.datetime.now().time(),
+          \": Event key obtaining done with\", year)\n    return output\n\ndef _serialize_str(str_value:
+          str) -> str:\n    if not isinstance(str_value, str):\n        raise TypeError(''Value
+          \"{}\" has type \"{}\" instead of str.''.format(\n            str(str_value),
+          str(type(str_value))))\n    return str_value\n\nimport argparse\n_parser
+          = argparse.ArgumentParser(prog=''Grab event keys for year'', description='''')\n_parser.add_argument(\"--years\",
+          dest=\"years\", type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"----output-paths\",
+          dest=\"_output_paths\", type=str, nargs=1)\n_parsed_args = vars(_parser.parse_args())\n_output_files
+          = _parsed_args.pop(\"_output_paths\", [])\n\n_outputs = grab_event_keys_for_year(**_parsed_args)\n\n_outputs
+          = [_outputs]\n\n_output_serializers = [\n    _serialize_str,\n\n]\n\nimport
+          os\nfor idx, output_file in enumerate(_output_files):\n    try:\n        os.makedirs(os.path.dirname(output_file))\n    except
+          OSError:\n        pass\n    with open(output_file, ''w'') as f:\n        f.write(_output_serializers[idx](_outputs[idx]))\n"],
+          "image": "python:3.7"}}, "inputs": [{"name": "years", "type": "String"}],
+          "name": "Grab event keys for year", "outputs": [{"name": "Output", "type":
+          "String"}]}', pipelines.kubeflow.org/component_ref: '{}', pipelines.kubeflow.org/arguments.parameters: '{"years":
+          "{{inputs.parameters.years}}"}'}
+  - name: grab-matches-for-events
+    container:
+      args: [--event-ids, '{{inputs.parameters.grab-event-keys-for-year-Output}}']
+      command:
+      - sh
+      - -c
+      - (PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location
+        'google-cloud-storage' 'requests' 'datetime' || PIP_DISABLE_PIP_VERSION_CHECK=1
+        python3 -m pip install --quiet --no-warn-script-location 'google-cloud-storage'
+        'requests' 'datetime' --user) && "$0" "$@"
+      - sh
+      - -ec
+      - |
+        program_path=$(mktemp)
+        printf "%s" "$0" > "$program_path"
+        python3 -u "$program_path" "$@"
+      - |
+        def grab_matches_for_events(event_ids):
+
+            event_ids = event_ids.split(',')
+
+            output_dir_path = 'pulled_matches'
+
+            def grabMatches(event_id, bucket):
+                year = event_id[0:4]
+
+                # Allocate strings
+                tba_read_key = 'vSedKwbovtAcDcYzaAl0QjcYwox4xXxC7r5b4zPpNS3X9BC6khgVlGhR3Fox2tYR'
+                format_str = f'https://www.thebluealliance.com/api/v3/event/{event_id}/matches'
+
+                import requests
+
+                matches_in_event = requests.get(url=format_str, headers={'X-TBA-Auth-Key': tba_read_key})
+
+                matches_json = matches_in_event.json()
+
+                for match in matches_json:
+                    dir = bucket.blob(output_dir_path + '/' + year + '/' + event_id + '/' + match['key'])
+                    dir.upload_from_string(str(match))
+
+                # Grab the general event data also
+                format_str = f'https://www.thebluealliance.com/api/v3/event/{event_id}'
+
+                matches_in_event = requests.get(url=format_str, headers={'X-TBA-Auth-Key': tba_read_key})
+                dir = bucket.blob(output_dir_path + '/' + year + '/' + event_id)
+                dir.upload_from_string(str(matches_in_event.json()))
+
+                print(datetime.datetime.now().date(), datetime.datetime.now().time(), ": Match obtaining done with", event_id)
+
+            from google.cloud import storage
+            from concurrent.futures.thread import ThreadPoolExecutor
+            from functools import partial
+            import datetime
+
+            client = storage.Client.from_service_account_info({"type": "service_account","project_id": "theta-byte-342416","private_key_id": "3bb0f4e92c48f894e7bb023330fed3247759f1a8","private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDc3JxLdqz4mCbT\nNSRQFMosWaXKLpTxlofe5DI104TcCsZJCpydGJcVuESP+wgq0D3+0jbroh9hQbN1\n9UF1VKiX0e0h5I8qeQ9NgoMHWYmXjutWhl4n+PpSydEQh7UcIYgsX00uJhPTNWil\ne4i+22Z+QXnzb1+5hPjrD0folvFY4f0OtY64ga8qy5qvConUVhRNiU6lerEJXqA4\nzvPU2MsDsqEMdo30U8X0DJFQTUfOU0WoadBP1Q8jEjqkWMx5ixVUbf95YX2XujoE\njYveYeFekR0Z5JE1ysYepWueuUjEef7N+cfAA2ubJSbXGmQ0YwZl6gcFtJR8+HGA\ncVVzJW6zAgMBAAECggEAIxgE17LYQjn+9VF83yKmi0yFXO5w6UBXf5G37riY5FPr\n9OA0SXwGScO5VT14q0DikPJ7Go7suIn1h5k8WPXmQhVvvhJwszmANns18b2G8Oeb\nOmjoXiagM/Zwe1Vs8DbdydssytfvD4Dti1npPRZkn0wtIgLA7ZwU51jKvsj5OXuH\nnuDyPs1p+llcUQq6jkFKe/TWxp5CGmOVHN7o20/pdM+uwoATUzidnBTv+m8fLs4D\nB/rRm2UzMy1bArZK7RL7PDLIaX7vBdTROjk2MIZh+Rheo16GrwyaNiFl03hzIK1O\n2pCOEaa3XD0+Zn7j+u8iN7x3M4lSP1aUEB3+CwxuTQKBgQD0tU8wFhGgFgKMp2Jp\nbyN9wFsG/CeUe8dSZGXft6eOvtXUrM+30oGX1tz/gOv83gMoR3tLb5C0wpT960KO\nlMt55UGGIjHtzGe6PykRz2opbb2VRTuaNjANVfGlxiuepJChX3ukr3GkhVOQBdQ7\nnSRYVQdR2k90Q69CDk3fzuPF7wKBgQDnDZt90yiDnNi5AqckC91zG7t+dYOfH+Uf\neo6sZBJ5kx7dWzfrjKAYcFaYJ+DKwyX4bgz50HoT75ziQRAa1Bhuk8pVg/4yl33v\nyN9fKIheI0mpJdF9SKjQZASXkh1tIUPnt37fBl9hmxIkU4wJpP8adStad/8fP7G0\nU7cRKv/HfQKBgQDrJzhbmzmAvuXgSBGYBAb1Ft3ijnlyhKf8EyKao5/O2rAdWZua\nqB2EziM9HKSqMKaUFGz1Btbl/X6zq1ogLfiCwL4AqeeU/rJHFd7fkJQSD7T5NriZ\n7qyqhAZdKVxNbRLXICxvC3GHid/NLOzQBKgigkMwczubHFfUgG5xPh0/3QKBgQCY\nSgO+vzro5KyD5Re9ToS7pf/Crjn+28rtIJ6BScRTlYC2bbVB8AJlmUW6LC6h9lZE\nlGTBE4QjN7+z8SZoSHuCBq9KBiG5vtgm/8MauWCIi8G1V1Pou8do80ODk68Jiu9y\n/yMEZPLhJpCimN6oTLRIAAp/KrBhLF44eSUkj67fEQKBgQCeuybLN0HHe13fYdzC\n/vkd/OoHhKjVlX2W1bKT9dDsBXw63vKwLKgKuGoqrVXcmlRqaERy13OmotjnAw7w\nW7Kv86wj8OyNSJ9VVwB/VhhWIcrddR4OR0WIwVxSQWYxFB02GvQTz7RSOc5myyVC\n/2l6MesGFtW8ch5fdLI+29VTxw==\n-----END PRIVATE KEY-----\n","client_email": "tbapreprocessing@theta-byte-342416.iam.gserviceaccount.com","client_id": "110866838631585602751","auth_uri": "https://accounts.google.com/o/oauth2/auth","token_uri": "https://oauth2.googleapis.com/token","auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs","client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/tbapreprocessing%40theta-byte-342416.iam.gserviceaccount.com"})
+            kubeflow_storage_bucket = client.get_bucket('theta-byte-342416-kubeflowpipelines-default')
+
+            for individual_event_id in event_ids:
+                grabMatches(individual_event_id, kubeflow_storage_bucket)
+
+        import argparse
+        _parser = argparse.ArgumentParser(prog='Grab matches for events', description='')
+        _parser.add_argument("--event-ids", dest="event_ids", type=str, required=True, default=argparse.SUPPRESS)
+        _parsed_args = vars(_parser.parse_args())
+
+        _outputs = grab_matches_for_events(**_parsed_args)
+      image: python:3.7
+    inputs:
+      parameters:
+      - {name: grab-event-keys-for-year-Output}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.11
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"implementation": {"container":
+          {"args": ["--event-ids", {"inputValue": "event_ids"}], "command": ["sh",
+          "-c", "(PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location
+          ''google-cloud-storage'' ''requests'' ''datetime'' || PIP_DISABLE_PIP_VERSION_CHECK=1
+          python3 -m pip install --quiet --no-warn-script-location ''google-cloud-storage''
+          ''requests'' ''datetime'' --user) && \"$0\" \"$@\"", "sh", "-ec", "program_path=$(mktemp)\nprintf
+          \"%s\" \"$0\" > \"$program_path\"\npython3 -u \"$program_path\" \"$@\"\n",
+          "def grab_matches_for_events(event_ids):\n\n    event_ids = event_ids.split('','')\n\n    output_dir_path
+          = ''pulled_matches''\n\n    def grabMatches(event_id, bucket):\n        year
+          = event_id[0:4]\n\n        # Allocate strings\n        tba_read_key = ''vSedKwbovtAcDcYzaAl0QjcYwox4xXxC7r5b4zPpNS3X9BC6khgVlGhR3Fox2tYR''\n        format_str
+          = f''https://www.thebluealliance.com/api/v3/event/{event_id}/matches''\n\n        import
+          requests\n\n        matches_in_event = requests.get(url=format_str, headers={''X-TBA-Auth-Key'':
+          tba_read_key})\n\n        matches_json = matches_in_event.json()\n\n        for
+          match in matches_json:\n            dir = bucket.blob(output_dir_path +
+          ''/'' + year + ''/'' + event_id + ''/'' + match[''key''])\n            dir.upload_from_string(str(match))\n\n        #
+          Grab the general event data also\n        format_str = f''https://www.thebluealliance.com/api/v3/event/{event_id}''\n\n        matches_in_event
+          = requests.get(url=format_str, headers={''X-TBA-Auth-Key'': tba_read_key})\n        dir
+          = bucket.blob(output_dir_path + ''/'' + year + ''/'' + event_id)\n        dir.upload_from_string(str(matches_in_event.json()))\n\n        print(datetime.datetime.now().date(),
+          datetime.datetime.now().time(), \": Match obtaining done with\", event_id)\n\n    from
+          google.cloud import storage\n    from concurrent.futures.thread import ThreadPoolExecutor\n    from
+          functools import partial\n    import datetime\n\n    client = storage.Client.from_service_account_info({\"type\":
+          \"service_account\",\"project_id\": \"theta-byte-342416\",\"private_key_id\":
+          \"3bb0f4e92c48f894e7bb023330fed3247759f1a8\",\"private_key\": \"-----BEGIN
+          PRIVATE KEY-----\\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDc3JxLdqz4mCbT\\nNSRQFMosWaXKLpTxlofe5DI104TcCsZJCpydGJcVuESP+wgq0D3+0jbroh9hQbN1\\n9UF1VKiX0e0h5I8qeQ9NgoMHWYmXjutWhl4n+PpSydEQh7UcIYgsX00uJhPTNWil\\ne4i+22Z+QXnzb1+5hPjrD0folvFY4f0OtY64ga8qy5qvConUVhRNiU6lerEJXqA4\\nzvPU2MsDsqEMdo30U8X0DJFQTUfOU0WoadBP1Q8jEjqkWMx5ixVUbf95YX2XujoE\\njYveYeFekR0Z5JE1ysYepWueuUjEef7N+cfAA2ubJSbXGmQ0YwZl6gcFtJR8+HGA\\ncVVzJW6zAgMBAAECggEAIxgE17LYQjn+9VF83yKmi0yFXO5w6UBXf5G37riY5FPr\\n9OA0SXwGScO5VT14q0DikPJ7Go7suIn1h5k8WPXmQhVvvhJwszmANns18b2G8Oeb\\nOmjoXiagM/Zwe1Vs8DbdydssytfvD4Dti1npPRZkn0wtIgLA7ZwU51jKvsj5OXuH\\nnuDyPs1p+llcUQq6jkFKe/TWxp5CGmOVHN7o20/pdM+uwoATUzidnBTv+m8fLs4D\\nB/rRm2UzMy1bArZK7RL7PDLIaX7vBdTROjk2MIZh+Rheo16GrwyaNiFl03hzIK1O\\n2pCOEaa3XD0+Zn7j+u8iN7x3M4lSP1aUEB3+CwxuTQKBgQD0tU8wFhGgFgKMp2Jp\\nbyN9wFsG/CeUe8dSZGXft6eOvtXUrM+30oGX1tz/gOv83gMoR3tLb5C0wpT960KO\\nlMt55UGGIjHtzGe6PykRz2opbb2VRTuaNjANVfGlxiuepJChX3ukr3GkhVOQBdQ7\\nnSRYVQdR2k90Q69CDk3fzuPF7wKBgQDnDZt90yiDnNi5AqckC91zG7t+dYOfH+Uf\\neo6sZBJ5kx7dWzfrjKAYcFaYJ+DKwyX4bgz50HoT75ziQRAa1Bhuk8pVg/4yl33v\\nyN9fKIheI0mpJdF9SKjQZASXkh1tIUPnt37fBl9hmxIkU4wJpP8adStad/8fP7G0\\nU7cRKv/HfQKBgQDrJzhbmzmAvuXgSBGYBAb1Ft3ijnlyhKf8EyKao5/O2rAdWZua\\nqB2EziM9HKSqMKaUFGz1Btbl/X6zq1ogLfiCwL4AqeeU/rJHFd7fkJQSD7T5NriZ\\n7qyqhAZdKVxNbRLXICxvC3GHid/NLOzQBKgigkMwczubHFfUgG5xPh0/3QKBgQCY\\nSgO+vzro5KyD5Re9ToS7pf/Crjn+28rtIJ6BScRTlYC2bbVB8AJlmUW6LC6h9lZE\\nlGTBE4QjN7+z8SZoSHuCBq9KBiG5vtgm/8MauWCIi8G1V1Pou8do80ODk68Jiu9y\\n/yMEZPLhJpCimN6oTLRIAAp/KrBhLF44eSUkj67fEQKBgQCeuybLN0HHe13fYdzC\\n/vkd/OoHhKjVlX2W1bKT9dDsBXw63vKwLKgKuGoqrVXcmlRqaERy13OmotjnAw7w\\nW7Kv86wj8OyNSJ9VVwB/VhhWIcrddR4OR0WIwVxSQWYxFB02GvQTz7RSOc5myyVC\\n/2l6MesGFtW8ch5fdLI+29VTxw==\\n-----END
+          PRIVATE KEY-----\\n\",\"client_email\": \"tbapreprocessing@theta-byte-342416.iam.gserviceaccount.com\",\"client_id\":
+          \"110866838631585602751\",\"auth_uri\": \"https://accounts.google.com/o/oauth2/auth\",\"token_uri\":
+          \"https://oauth2.googleapis.com/token\",\"auth_provider_x509_cert_url\":
+          \"https://www.googleapis.com/oauth2/v1/certs\",\"client_x509_cert_url\":
+          \"https://www.googleapis.com/robot/v1/metadata/x509/tbapreprocessing%40theta-byte-342416.iam.gserviceaccount.com\"})\n    kubeflow_storage_bucket
+          = client.get_bucket(''theta-byte-342416-kubeflowpipelines-default'')\n\n    for
+          individual_event_id in event_ids:\n        grabMatches(individual_event_id,
+          kubeflow_storage_bucket)\n\nimport argparse\n_parser = argparse.ArgumentParser(prog=''Grab
+          matches for events'', description='''')\n_parser.add_argument(\"--event-ids\",
+          dest=\"event_ids\", type=str, required=True, default=argparse.SUPPRESS)\n_parsed_args
+          = vars(_parser.parse_args())\n\n_outputs = grab_matches_for_events(**_parsed_args)\n"],
+          "image": "python:3.7"}}, "inputs": [{"name": "event_ids", "type": "String"}],
+          "name": "Grab matches for events"}', pipelines.kubeflow.org/component_ref: '{}',
+        pipelines.kubeflow.org/arguments.parameters: '{"event_ids": "{{inputs.parameters.grab-event-keys-for-year-Output}}"}'}
+  - name: the-blue-alliance-preprocessing
+    inputs:
+      parameters:
+      - {name: years}
+    dag:
+      tasks:
+      - name: grab-event-keys-for-year
+        template: grab-event-keys-for-year
+        arguments:
+          parameters:
+          - {name: years, value: '{{inputs.parameters.years}}'}
+      - name: grab-matches-for-events
+        template: grab-matches-for-events
+        dependencies: [grab-event-keys-for-year]
+        arguments:
+          parameters:
+          - {name: grab-event-keys-for-year-Output, value: '{{tasks.grab-event-keys-for-year.outputs.parameters.grab-event-keys-for-year-Output}}'}
+  arguments:
+    parameters:
+    - {name: years}
+  serviceAccountName: pipeline-runner
