@@ -26,9 +26,10 @@ def grab_matches_for_events(event_ids: str):
         # Grab the general event data also
         format_str = f'https://www.thebluealliance.com/api/v3/event/{event_id}'
 
-        matches_in_event = requests.get(url=format_str, headers={'X-TBA-Auth-Key': tba_read_key})
-        dir = bucket.blob(output_dir_path + '/' + year + '/' + event_id)
-        dir.upload_from_string(str(matches_in_event.json()))
+        if len(matches_json) != 0:
+            matches_in_event = requests.get(url=format_str, headers={'X-TBA-Auth-Key': tba_read_key})
+            dir = bucket.blob(output_dir_path + '/' + year + '/' + event_id + '_event_data')
+            dir.upload_from_string(str(matches_in_event.json()))
 
         print(datetime.datetime.now().date(), datetime.datetime.now().time(), ": Match obtaining done with", event_id)
 
