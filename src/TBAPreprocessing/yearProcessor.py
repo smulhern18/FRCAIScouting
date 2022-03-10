@@ -1,4 +1,3 @@
-from kfp.components import OutputPath
 
 
 def grab_event_keys_for_year(years: str) -> str:
@@ -36,6 +35,8 @@ def grab_event_keys_for_year(years: str) -> str:
             output += (eventKey+',')
 
         print(datetime.datetime.now().date(), datetime.datetime.now().time(), ": Event key obtaining done with", year)
+
+    output = output[:len(output)-1]
     return output
 
 

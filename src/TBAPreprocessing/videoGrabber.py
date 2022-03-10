@@ -1,51 +1,14 @@
 
+complete = False
 
-def grab_matches_for_events(event_ids: str, ) -> str:
+def grab_videos_for_matches(src_path):
 
-    event_ids = event_ids.split(',')
-
-    output_dir_path = 'pulled_matches'
-
-    def grabMatches(event_id: str, bucket):
-        year = event_id[0:4]
-
-        # Allocate strings
-        tba_read_key = 'vSedKwbovtAcDcYzaAl0QjcYwox4xXxC7r5b4zPpNS3X9BC6khgVlGhR3Fox2tYR'
-        format_str = f'https://www.thebluealliance.com/api/v3/event/{event_id}/matches'
-
-        import requests
-
-        matches_in_event = requests.get(url=format_str, headers={'X-TBA-Auth-Key': tba_read_key})
-
-        matches_json = matches_in_event.json()
-
-        for match in matches_json:
-            dir = bucket.blob(output_dir_path + '/' + year + '/' + event_id + '/' + match['key'])
-            dir.upload_from_string(str(match))
-
-            video_objects = match['videos']
-            if len(video_objects) != 0:
-                videos_to_grab = ''
-                for video in video_objects:
-                    if video['type'] == 'youtube':
-                        videos_to_grab += (video['key']+',')
-                videos_to_grab = videos_to_grab[:len(videos_to_grab)-1]
-                dir = bucket.blob('video_keys/'+match['key'])
-                dir.upload_from_string(videos_to_grab)
-
-        # Grab the general event data also
-        format_str = f'https://www.thebluealliance.com/api/v3/event/{event_id}'
-
-        if len(matches_json) != 0:
-            matches_in_event = requests.get(url=format_str, headers={'X-TBA-Auth-Key': tba_read_key})
-            dir = bucket.blob(output_dir_path + '/' + year + '/' + event_id + '_event_data')
-            dir.upload_from_string(str(matches_in_event.json()))
-
-        print(datetime.datetime.now().date(), datetime.datetime.now().time(), ": Match obtaining done with", event_id)
-
+    from io import BytesIO
     from google.cloud import storage
+    from pytube import YouTube
+    from pytube.exceptions import VideoUnavailable
     import datetime
-
+    global complete
     client = storage.Client.from_service_account_info({"type": "service_account",
                                                        "project_id": "theta-byte-342416",
                                                        "private_key_id": "3bb0f4e92c48f894e7bb023330fed3247759f1a8",
@@ -56,25 +19,37 @@ def grab_matches_for_events(event_ids: str, ) -> str:
                                                        "token_uri": "https://oauth2.googleapis.com/token",
                                                        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
                                                        "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/tbapreprocessing%40theta-byte-342416.iam.gserviceaccount.com"})
-    kubeflow_storage_bucket = client.get_bucket('theta-byte-342416-kubeflowpipelines-default', timeout=3600)
-    import google.api_core.exceptions as gex
+    computer_vision_bucket = client.get_bucket('computer-vision-dev-theta-byte', timeout=3600)
 
-    while len(event_ids) > 0:
+    def wait_for_completion(any, string):
+        global complete
+        complete = True
 
-        events_to_retry = []
-
-        for individual_event_id in event_ids:
+    for blob in client.list_blobs('theta-byte-342416-kubeflowpipelines-default', prefix=src_path, timeout=3600):
+        videos = blob.download_as_string().decode('utf-8')
+        videos = videos.split(',')
+        for video in videos:
+            vid = YouTube("https://www.youtube.com/watch?v="+video, on_complete_callback=wait_for_completion)
+            vid_buffer = BytesIO(bytearray(16777216))
             try:
-                grabMatches(individual_event_id, kubeflow_storage_bucket)
-            except gex.ServiceUnavailable:
-                events_to_retry.append(individual_event_id)
 
-        event_ids = events_to_retry
+                def download_video(buffer, vi):
+                    vi = vi.streams.get_highest_resolution()
+                    vi.stream_to_buffer(buffer)
+                    while not complete:
+                        i = 0
+                    buffer.seek(0)
 
-    video_keys_dir = 'video_keys/'
+                download_video(vid_buffer, vid)
+                file = computer_vision_bucket.blob(blob.name.split('/')[1]+video+'.mp4')
+                file.upload_from_file(vid_buffer)
+                complete = False
+            except VideoUnavailable:
+                continue
 
-    return video_keys_dir
+        print(datetime.datetime.now().date(), datetime.datetime.now().time(), ':', 'Done with match', blob.name)
+    return 0
 
 
 if __name__ == "__main__":
-    grab_matches_for_events('2019zhrcc')
+    grab_videos_for_matches('video_keys/')
