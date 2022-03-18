@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
   generateName: the-blue-alliance-preprocessing-
-  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.11, pipelines.kubeflow.org/pipeline_compilation_time: '2022-03-10T11:38:50.888286',
+  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.11, pipelines.kubeflow.org/pipeline_compilation_time: '2022-03-10T11:54:41.377571',
     pipelines.kubeflow.org/pipeline_spec: '{"inputs": [{"name": "years", "type": "String"}],
       "name": "The Blue Alliance Preprocessing"}'}
   labels: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.11}
@@ -411,7 +411,7 @@ spec:
                         file = computer_vision_bucket.blob(blob.name.split('/')[1]+video+'.mp4')
                         file.upload_from_file(vid_buffer)
                         complete = False
-                    except VideoUnavailable:
+                    except:
                         continue
 
                 print(datetime.datetime.now().date(), datetime.datetime.now().time(), ':', 'Done with match', blob.name)
@@ -463,7 +463,7 @@ spec:
           download_video(buffer, vi):\n                    vi = vi.streams.get_highest_resolution()\n                    vi.stream_to_buffer(buffer)\n                    while
           not complete:\n                        i = 0\n                    buffer.seek(0)\n\n                download_video(vid_buffer,
           vid)\n                file = computer_vision_bucket.blob(blob.name.split(''/'')[1]+video+''.mp4'')\n                file.upload_from_file(vid_buffer)\n                complete
-          = False\n            except VideoUnavailable:\n                continue\n\n        print(datetime.datetime.now().date(),
+          = False\n            except:\n                continue\n\n        print(datetime.datetime.now().date(),
           datetime.datetime.now().time(), '':'', ''Done with match'', blob.name)\n    return
           0\n\nimport argparse\n_parser = argparse.ArgumentParser(prog=''Grab videos
           for matches'', description='''')\n_parser.add_argument(\"--src-path\", dest=\"src_path\",

@@ -25,27 +25,31 @@ def grab_videos_for_matches(src_path):
         global complete
         complete = True
 
+    videos_downloaded = {}
+
     for blob in client.list_blobs('theta-byte-342416-kubeflowpipelines-default', prefix=src_path, timeout=3600):
         videos = blob.download_as_string().decode('utf-8')
         videos = videos.split(',')
         for video in videos:
-            vid = YouTube("https://www.youtube.com/watch?v="+video, on_complete_callback=wait_for_completion)
-            vid_buffer = BytesIO(bytearray(16777216))
-            try:
+            video = video.split('?')[0]
+            if videos_downloaded.get(video) != 1:
+                vid = YouTube("https://www.youtube.com/watch?v="+video, on_complete_callback=wait_for_completion)
+                vid_buffer = BytesIO(bytearray(16777216))
+                try:
+                    def download_video(buffer, vi):
+                        vi = vi.streams.get_highest_resolution()
+                        vi.stream_to_buffer(buffer)
+                        while not complete:
+                            i = 0
+                        buffer.seek(0)
 
-                def download_video(buffer, vi):
-                    vi = vi.streams.get_highest_resolution()
-                    vi.stream_to_buffer(buffer)
-                    while not complete:
-                        i = 0
-                    buffer.seek(0)
-
-                download_video(vid_buffer, vid)
-                file = computer_vision_bucket.blob(blob.name.split('/')[1]+video+'.mp4')
-                file.upload_from_file(vid_buffer)
-                complete = False
-            except VideoUnavailable:
-                continue
+                    download_video(vid_buffer, vid)
+                    file = computer_vision_bucket.blob(blob.name.split('/')[1]+video+'.mp4')
+                    file.upload_from_file(vid_buffer)
+                    complete = False
+                except:
+                    continue
+                videos_downloaded[video] = 1
 
         print(datetime.datetime.now().date(), datetime.datetime.now().time(), ':', 'Done with match', blob.name)
     return 0
