@@ -4,7 +4,7 @@ import kfp.compiler
 import kfp.dsl as dsl
 from kfp.components import create_component_from_func
 
-from videoGrabber import grab_videos_for_matches
+from robotScoreAggregator import aggregate_scores
 from yearProcessor import grab_event_keys_for_year
 from matchProcessor import grab_matches_for_events
 
@@ -21,11 +21,10 @@ matches_op = create_component_from_func(grab_matches_for_events, packages_to_ins
                                                                                       'google-api-core',
                                                                                       'requests',
                                                                                       'datetime'])
-videos_op = create_component_from_func(grab_videos_for_matches, packages_to_install=['google-cloud-storage',
-                                                                                     'google-api-core',
-                                                                                     'requests',
-                                                                                     'datetime',
-                                                                                     'pytube'])
+robot_score_op = create_component_from_func(aggregate_scores, packages_to_install=['google-cloud-storage',
+                                                                                   'datetime',
+                                                                                   'pandas',
+                                                                                   'ast'])
 
 
 @dsl.pipeline(
@@ -35,7 +34,9 @@ videos_op = create_component_from_func(grab_videos_for_matches, packages_to_inst
 def pipeline(years: str):
     get_event_keys_task = event_op(years=years)
     get_matches_task = matches_op(get_event_keys_task.output)
-    get_videos_task = videos_op(get_matches_task.output)
+    robot_score_task_2017 = robot_score_op('2017', get_matches_task.output)
+    robot_score_task_2018 = robot_score_op('2018', get_matches_task.output)
+    robot_score_task_2019 = robot_score_op('2019', get_matches_task.output)
 
 
 if __name__ == '__main__':
