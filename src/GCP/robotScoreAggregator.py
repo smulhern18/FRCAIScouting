@@ -16,14 +16,11 @@ serviceAccount = {"type": "service_account", "project_id": "theta-byte-342416",
 
 
 def aggregate_scores(eventName) -> str:
-    year = eventName[0:4]
+    year = int(eventName[0:4])
     data = None
-    if year == '2017':
-        data = process_2017(eventName, serviceAccount)
-    elif year == '2018':
-        data = process_2018(eventName, serviceAccount)
-    elif year == '2019':
-        data = process_2019(eventName, serviceAccount)
+    if   year == 2017:  data = process_2017(eventName, serviceAccount)
+    elif year == 2018:  data = process_2018(eventName, serviceAccount)
+    elif year == 2019:  data = process_2019(eventName, serviceAccount)
     # Normalize
     for col in data.columns:
         if col not in ['Fouls','Defense']:
@@ -35,6 +32,7 @@ def aggregate_scores(eventName) -> str:
             data[col] = data[col]/max(data[col])
     # Add competition as a column
     data['Competition'] = eventName
+    data['Year'] = year
     # Make index a column
     data.reset_index(inplace=True)
     # Upload to big query
