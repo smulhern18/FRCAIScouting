@@ -62,7 +62,7 @@ def process_2018(eventname: str, serviceAccount) -> dict:
         bTechS.append(d.get('score_breakdown').get('blue').get('teleopScaleBoostSec') + d.get('score_breakdown').get('blue').get('teleopSwitchBoostSec') + d.get('score_breakdown').get('blue').get('teleopScaleForceSec') + d.get('score_breakdown').get('blue').get('teleopSwitchForceSec') + d.get('score_breakdown').get('blue').get('vaultPoints') + d.get('score_breakdown').get('blue').get('vaultLevitatePlayed')*30)
         rTechS.append(d.get('score_breakdown').get('red').get('teleopScaleBoostSec') + d.get('score_breakdown').get('red').get('teleopSwitchBoostSec') + d.get('score_breakdown').get('red').get('teleopScaleForceSec') + d.get('score_breakdown').get('red').get('teleopSwitchForceSec') + d.get('score_breakdown').get('red').get('vaultPoints') + d.get('score_breakdown').get('red').get('vaultLevitatePlayed')*30)
 
-    col_names = ['Robot','Traditional Scoring High','Traditional Scoring Low','Technical Scoring','Autonomous Scoring','Endgame','Fouls','Defense']
+    col_names = ['Robot','Traditional_Scoring_High','Traditional_Scoring_Low','Technical_Scoring','Autonomous_Scoring','Endgame','Fouls','Defense']
     data_2018 = pd.DataFrame(columns = col_names)
     for match in range(0,len(b1s)):
         data = [b1s[match],bTradSH[match],bTradSL[match],bTechS[match],bautoT[match],bendG[match][0],bfoulsO[match],bdefO[match]]

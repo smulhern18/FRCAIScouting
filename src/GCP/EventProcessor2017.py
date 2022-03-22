@@ -54,7 +54,7 @@ def process_2017(eventname: str, serviceAccount) -> dict:
         bTechS.append(d.get('score_breakdown').get('blue').get('rotor1Engaged')*40 + d.get('score_breakdown').get('blue').get('rotor2Engaged')*40/2 + d.get('score_breakdown').get('blue').get('rotor1Engaged')*40/4 + d.get('score_breakdown').get('blue').get('rotor1Engaged')*40/5)
         rTechS.append(d.get('score_breakdown').get('red').get('rotor1Engaged')*40 + d.get('score_breakdown').get('red').get('rotor2Engaged')*40/2 + d.get('score_breakdown').get('red').get('rotor1Engaged')*40/4 + d.get('score_breakdown').get('red').get('rotor1Engaged')*40/5)
 
-    col_names = ['Robot','Traditional_Scoring_High','Traditional_Scoring_Low','Technical_Scoring','Autonomous_frc3354Scoring','Endgame','Fouls','Defense']
+    col_names = ['Robot','Traditional_Scoring_High','Traditional_Scoring_Low','Technical_Scoring','Autonomous_Scoring','Endgame','Fouls','Defense']
     data_2017 = pd.DataFrame(columns = col_names)
     for match in range(0,len(b1s)):
         data = [b1s[match],bTradSH[match],bTradSL[match],bTechS[match],bautoT[match],bendG[match],bfoulsO[match],bdefO[match]]
