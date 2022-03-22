@@ -95,8 +95,20 @@ def process_2017(eventname: str) -> dict:
 if __name__ == "__main__":
     eventName = '2017abca'
     data = process_2017(eventName)
+    # Normalize
+    for col in data.columns:
+        if col not in ['Fouls','Defense']:
+            data[col] = data[col]/max(data[col])
+        else:
+            data[col] = 1- data[col]/min(data[col])
+
+    for col in data.columns:
+        if col in ['Fouls','Defense']:
+            data[col] = data[col]/max(data[col])
+    # Add competition as a column
     data['Competition'] = eventName
+    # Make index a column
     data.reset_index(inplace=True)
-    print(data)
+    # Upload to big query
     client = bigquery.Client.from_service_account_info(serviceAccount)
     job = client.load_table_from_dataframe(data, 'theta-byte-342416.competitions.test')
