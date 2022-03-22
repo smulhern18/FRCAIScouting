@@ -42,6 +42,8 @@ def process_2017(eventname: str) -> dict:
     src_path = src_path + eventname + '/'
 
     for blob in client.list_blobs('theta-byte-342416-kubeflowpipelines-default', prefix=src_path, timeout=3600):
+        print(blob.name)
+        
         d = ast.literal_eval(blob.download_as_string().decode('utf-8'))
 
         b1s.append(d.get('alliances').get('blue').get('team_keys')[0])
