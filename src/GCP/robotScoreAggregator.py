@@ -1,4 +1,6 @@
 from google.cloud import bigquery
+import base64
+import json
 
 from EventProcessor2017 import process_2017
 from EventProcessor2018 import process_2018
@@ -38,6 +40,10 @@ def aggregate_scores(eventName) -> str:
     # Upload to big query
     client = bigquery.Client.from_service_account_info(serviceAccount)
     job = client.load_table_from_dataframe(data, 'theta-byte-342416.competitions.test')
+    return 'Computed correctly', 200
 
-if __name__ == "__main__":
-    aggregate_scores('2017abca')
+def pubsub_entry(event, context):
+    pubsub_message = base64.b64decode(event['data']).decode('utf-8')
+    request_json = json.loads(pubsub_message)
+    EVENT_NAME = request_json['EVENT_NAME']
+    return aggregate_scores(EVENT_NAME)
