@@ -19,22 +19,23 @@ serviceAccount = {"type": "service_account", "project_id": "theta-byte-342416",
 
 storage_client = storage.Client.from_service_account_info(serviceAccount)
 
-blobs = storage_client.list_blobs("theta-byte-342416-kubeflowpipelines-default", prefix="pulled_events/2019")
 
 publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path('theta-byte-342416', 'EventProcessorTopic')
 publish_futures = []
 
-for entry in blobs:
-    filename = os.path.basename(entry.name)
-    print(filename)
-    payload = json.dumps({
-        "EVENT_NAME": filename
-    })
-    # When you publish a message, the client returns a future.
-    publish_future = publisher.publish(topic_path, payload.encode("utf-8"))
-    # Non-blocking. Publish failures are handled in the callback function.
-    publish_futures.append(publish_future)
+for year in ['2017', '2018', '2019']:
+    blobs = storage_client.list_blobs(f"theta-byte-342416-kubeflowpipelines-default", prefix=f"pulled_events/{year}")
+    for entry in blobs:
+        filename = os.path.basename(entry.name)
+        print(filename)
+        payload = json.dumps({
+            "EVENT_NAME": filename
+        })
+        # When you publish a message, the client returns a future.
+        publish_future = publisher.publish(topic_path, payload.encode("utf-8"))
+        # Non-blocking. Publish failures are handled in the callback function.
+        publish_futures.append(publish_future)
 
 # Wait for all the publish futures to resolve before exiting.
 futures.wait(publish_futures, return_when=futures.ALL_COMPLETED)
