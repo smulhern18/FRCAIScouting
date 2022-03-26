@@ -23,10 +23,10 @@ def computeWinLost(matchName):
         _, year, competition, match = matchName.split('/')
         # Get blue team scores from bigquery
         query_job = bqclient.query(
-            f'SELECT Traditional_Scoring_High,Traditional_Scoring_Low,Technical_Scoring,Autonomous_Scoring,Endgame,Fouls,Defense FROM `theta-byte-342416.competitions.test` WHERE (Competition="{competition}" AND (Robot="{alliances["blue"]["team_keys"][0]}" OR Robot="{alliances["blue"]["team_keys"][1]}" OR Robot="{alliances["blue"]["team_keys"][2]}"))'
+            f'SELECT Traditional_Scoring_High,Traditional_Scoring_Low,Technical_Scoring,Autonomous_Scoring,Endgame,Fouls,Defense FROM `theta-byte-342416.competitions.main` WHERE (Competition="{competition}" AND (Robot="{alliances["blue"]["team_keys"][0]}" OR Robot="{alliances["blue"]["team_keys"][1]}" OR Robot="{alliances["blue"]["team_keys"][2]}"))'
         )
         stats = list(query_job.result())
-        if (len(stats) != 3): return f'[{competition}] Did not find 3 teams, but {len(stats)}', 400
+        if (len(stats) != 3):  raise ValueError(f'[{matchName}] Did not find 3 teams, but {len(stats)}: {", ".join(stats)}')
         blue_keys = ['Blue_Traditional_Scoring_High','Blue_Traditional_Scoring_Low','Blue_Technical_Scoring','Blue_Autonomous_Scoring','Blue_Endgame','Blue_Fouls','Blue_Defense']
         blue = [sum(x) for x in zip(stats[0], stats[1])]
         blue = [sum(x) for x in zip(blue, stats[2])]
@@ -34,10 +34,10 @@ def computeWinLost(matchName):
         kvb = dict(zip(blue_keys, blue))
         # Get red team scores from bigquery
         query_job = bqclient.query(
-            f'SELECT Traditional_Scoring_High,Traditional_Scoring_Low,Technical_Scoring,Autonomous_Scoring,Endgame,Fouls,Defense FROM `theta-byte-342416.competitions.test` WHERE (Competition="{competition}" AND (Robot="{alliances["red"]["team_keys"][0]}" OR Robot="{alliances["red"]["team_keys"][1]}" OR Robot="{alliances["red"]["team_keys"][2]}"))'
+            f'SELECT Traditional_Scoring_High,Traditional_Scoring_Low,Technical_Scoring,Autonomous_Scoring,Endgame,Fouls,Defense FROM `theta-byte-342416.competitions.main` WHERE (Competition="{competition}" AND (Robot="{alliances["red"]["team_keys"][0]}" OR Robot="{alliances["red"]["team_keys"][1]}" OR Robot="{alliances["red"]["team_keys"][2]}"))'
         )
         stats = list(query_job.result())
-        if (len(stats) != 3): return f'[{competition}] Did not find 3 teams, but {len(stats)}', 400
+        if (len(stats) != 3):  raise ValueError(f'[{matchName}] Did not find 3 teams, but {len(stats)}: {", ".join(stats)}')
         red_keys = ['Red_Traditional_Scoring_High','Red_Traditional_Scoring_Low','Red_Technical_Scoring','Red_Autonomous_Scoring','Red_Endgame','Red_Fouls','Red_Defense']
         red = [sum(x) for x in zip(stats[0], stats[1])]
         red = [sum(x) for x in zip(red, stats[2])]
@@ -52,11 +52,14 @@ def computeWinLost(matchName):
         }
         res.update(kvb)
         res.update(kvr)
-        print(res)
         # for key in res:
         #     print(f"{key}:FLOAT,")
-        errors = bqclient.insert_rows_json('theta-byte-342416.wonlost.all', [res])
-        print(errors)
+        storage_client = storage.Client.from_service_account_info(serviceAccount)
+        bucket = storage_client.get_bucket('theta-byte-342416-kubeflowpipelines-default')
+        bucket.blob(f'wonlost/{os.path.basename(matchName)}.json').upload_from_string(json.dumps(res), 'text/json')
+
+        # errors = bqclient.insert_rows_json('theta-byte-342416.wonlost.all', [res])
+        # if (len(errors) != 0): raise ValueError('matchName' + ' - '.join(errors) + str(res))
 
 def pubsub_entry(event, context):
     pubsub_message = base64.b64decode(event['data']).decode('utf-8')
@@ -67,4 +70,4 @@ def pubsub_entry(event, context):
 
 
 if __name__ == '__main__':
-    computeWinLost('pulled_matches/2017/2017alhu/2017alhu_qm82')
+    computeWinLost('pulled_matches/2017/2017txrm/2017txrm_qm1')

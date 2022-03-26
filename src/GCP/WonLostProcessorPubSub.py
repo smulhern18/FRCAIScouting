@@ -3,8 +3,8 @@
 from google.cloud import storage
 from concurrent import futures
 from google.cloud import pubsub_v1
-import os
-import json
+import os, json
+from tqdm import tqdm
 
 key_path = 'theta-byte-342416-f0e7aa1587c4.json'
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = key_path
@@ -25,20 +25,21 @@ topic_path = publisher.topic_path('theta-byte-342416', 'WonLostProcessorTopic')
 publish_futures = []
 
 client = storage.Client.from_service_account_info(serviceAccount)
-for year in [2017, 2018, 2019]:
-    for competition in client.list_blobs('theta-byte-342416-kubeflowpipelines-default', prefix=f'pulled_matches/{year}/'):
-        cname = os.path.basename(competition.name)
-        for match in client.list_blobs('theta-byte-342416-kubeflowpipelines-default', prefix=f'pulled_matches/{year}/{cname}/'):
-            mtype = os.path.basename(match.name).split('_')[-1]
-            if (mtype[:2] != 'qm'): continue
-            # payload = json.dumps({
-            #     "MATCH_NAME": match.name
-            # })
-            # # When you publish a message, the client returns a future.
-            # publish_future = publisher.publish(topic_path, payload.encode("utf-8"))
-            # # Non-blocking. Publish failures are handled in the callback function.
-            # publish_futures.append(publish_future)
 
+
+for year in [2017, 2018, 2019]:
+    for match in tqdm(client.list_blobs('theta-byte-342416-kubeflowpipelines-default', prefix=f'pulled_matches/{year}/')): 
+        if (len(match.name.split('/')) != 4): continue
+        mtype = os.path.basename(match.name).split('_')[-1]
+        if (mtype[:2] != 'qm'): continue
+        payload = json.dumps({
+            "MATCH_NAME": match.name
+        })
+        print(match.name)
+        # When you publish a message, the client returns a future.
+        publish_future = publisher.publish(topic_path, payload.encode("utf-8"))
+        # Non-blocking. Publish failures are handled in the callback function.
+        publish_futures.append(publish_future)
 
 # Wait for all the publish futures to resolve before exiting.
 futures.wait(publish_futures, return_when=futures.ALL_COMPLETED)
