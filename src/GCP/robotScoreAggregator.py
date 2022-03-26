@@ -1,6 +1,5 @@
-from google.cloud import bigquery
-import base64
-import json
+from google.cloud import bigquery, storage
+import json, logging, base64
 
 from EventProcessor2017 import process_2017
 from EventProcessor2018 import process_2018
@@ -18,28 +17,42 @@ serviceAccount = {"type": "service_account", "project_id": "theta-byte-342416",
 
 
 def aggregate_scores(eventName) -> str:
-    year = int(eventName[0:4])
     data = None
-    if   year == 2017:  data = process_2017(eventName, serviceAccount)
-    elif year == 2018:  data = process_2018(eventName, serviceAccount)
-    elif year == 2019:  data = process_2019(eventName, serviceAccount)
-    # Normalize
-    for col in data.columns:
-        if col not in ['Fouls','Defense']:
-            data[col] = data[col]/max(data[col])
-        else:
-            data[col] = 1- data[col]/min(data[col])
-    for col in data.columns:
-        if col in ['Fouls','Defense']:
-            data[col] = data[col]/max(data[col])
-    # Add competition as a column
-    data['Competition'] = eventName
-    data['Year'] = year
-    # Make index a column
-    data.reset_index(inplace=True)
-    # Upload to big query
-    client = bigquery.Client.from_service_account_info(serviceAccount)
-    job = client.load_table_from_dataframe(data, 'theta-byte-342416.competitions.test')
+    year = None
+    try:
+        year = int(eventName[0:4])
+    except: raise ValueError(f'Error during date parsing for {eventName}')
+    try:
+        if   year == 2017:  data = process_2017(eventName, serviceAccount)
+        elif year == 2018:  data = process_2018(eventName, serviceAccount)
+        elif year == 2019:  data = process_2019(eventName, serviceAccount)
+        if data.empty:
+            logging.error(f'Empty competition: {eventName}')
+            return f'Empty data for {eventName}', 400
+    except: raise ValueError(f'Error during process for {eventName}')
+    try:
+        # Normalize
+        for col in data.columns:
+            if col not in ['Fouls','Defense']:
+                data[col] = data[col]/max(data[col])
+            else:
+                data[col] = 1- data[col]/min(data[col])
+        for col in data.columns:
+            if col in ['Fouls','Defense']:
+                data[col] = data[col]/max(data[col])
+    except: raise ValueError(f'Error during normalization for {eventName}')
+    try:
+        # Add competition as a column
+        data['Competition'] = eventName
+        data['Year'] = year
+        # Make index a column
+        data.reset_index(inplace=True)
+        print(data)
+        # Upload to big query
+        storage_client = storage.Client.from_service_account_info(serviceAccount)
+        bucket = storage_client.get_bucket('theta-byte-342416-kubeflowpipelines-default')
+        bucket.blob(f'robot_scores/{eventName}.csv').upload_from_string(data.to_csv(), 'text/csv')
+    except: raise ValueError(f'Error during pushing for {eventName}')
     return 'Computed correctly', 200
 
 def pubsub_entry(event, context):
@@ -47,3 +60,6 @@ def pubsub_entry(event, context):
     request_json = json.loads(pubsub_message)
     EVENT_NAME = request_json['EVENT_NAME']
     return aggregate_scores(EVENT_NAME)
+
+# if __name__ == "__main__":
+#     aggregate_scores('2018fsurd')
