@@ -30,6 +30,11 @@ def process_2018(eventname: str, serviceAccount) -> dict:
 
     src_path = src_path + eventname + '/'
 
+    col_names = ['Robot','Traditional_Scoring_High','Traditional_Scoring_Low','Technical_Scoring','Autonomous_Scoring','Endgame','Fouls','Defense']
+    data_2018 = pd.DataFrame(columns = col_names)
+    
+    match = 0
+
     for blob in client.list_blobs('theta-byte-342416-kubeflowpipelines-default', prefix=src_path, timeout=3600):
         try:
             d = ast.literal_eval(blob.download_as_string().decode('utf-8'))
@@ -65,11 +70,7 @@ def process_2018(eventname: str, serviceAccount) -> dict:
 
             bTechS.append(d.get('score_breakdown').get('blue').get('teleopScaleBoostSec') + d.get('score_breakdown').get('blue').get('teleopSwitchBoostSec') + d.get('score_breakdown').get('blue').get('teleopScaleForceSec') + d.get('score_breakdown').get('blue').get('teleopSwitchForceSec') + d.get('score_breakdown').get('blue').get('vaultPoints') + d.get('score_breakdown').get('blue').get('vaultLevitatePlayed')*30)
             rTechS.append(d.get('score_breakdown').get('red').get('teleopScaleBoostSec') + d.get('score_breakdown').get('red').get('teleopSwitchBoostSec') + d.get('score_breakdown').get('red').get('teleopScaleForceSec') + d.get('score_breakdown').get('red').get('teleopSwitchForceSec') + d.get('score_breakdown').get('red').get('vaultPoints') + d.get('score_breakdown').get('red').get('vaultLevitatePlayed')*30)
-        except: continue
-    col_names = ['Robot','Traditional_Scoring_High','Traditional_Scoring_Low','Technical_Scoring','Autonomous_Scoring','Endgame','Fouls','Defense']
-    data_2018 = pd.DataFrame(columns = col_names)
-    for match in range(0,len(b1s)):
-        try:
+            
             data = [b1s[match],bTradSH[match],bTradSL[match],bTechS[match],bautoT[match],bendG[match][0],bfoulsO[match],bdefO[match]]
             data_2018 = data_2018.append(pd.DataFrame([data],columns = col_names), ignore_index = True)
             data = [b2s[match],bTradSH[match],bTradSL[match],bTechS[match],bautoT[match],bendG[match][1],bfoulsO[match],bdefO[match]]
@@ -82,6 +83,9 @@ def process_2018(eventname: str, serviceAccount) -> dict:
             data_2018 = data_2018.append(pd.DataFrame([data],columns = col_names), ignore_index = True)
             data = [r3s[match],rTradSH[match],rTradSL[match],rTechS[match],rautoT[match],rendG[match][2],rfoulsO[match],rdefO[match]]
             data_2018 = data_2018.append(pd.DataFrame([data],columns = col_names), ignore_index = True)
+            
+            match += 1
+        
         except: continue
     
     for stat in data_2018:

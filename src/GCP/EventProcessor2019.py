@@ -30,6 +30,11 @@ def process_2019(eventname: str, serviceAccount) -> dict:
 
     src_path = src_path + eventname + '/'
 
+    col_names = ['Robot','Traditional_Scoring_High','Traditional_Scoring_Low','Technical_Scoring','Autonomous_Scoring','Endgame','Fouls','Defense']
+    data_2019 = pd.DataFrame(columns = col_names)
+
+    match = 0
+
     for blob in client.list_blobs('theta-byte-342416-kubeflowpipelines-default', prefix=src_path, timeout=3600):
         try:
             d = ast.literal_eval(blob.download_as_string().decode('utf-8'))
@@ -68,12 +73,7 @@ def process_2019(eventname: str, serviceAccount) -> dict:
 
             bTechS.append(panel_dict.get(d.get('score_breakdown').get('blue').get('bay1')) + panel_dict.get(d.get('score_breakdown').get('blue').get('bay2')) + panel_dict.get(d.get('score_breakdown').get('blue').get('bay3')) + panel_dict.get(d.get('score_breakdown').get('blue').get('bay4')) + panel_dict.get(d.get('score_breakdown').get('blue').get('bay5')) + panel_dict.get(d.get('score_breakdown').get('blue').get('bay6')) + panel_dict.get(d.get('score_breakdown').get('blue').get('bay7')) + panel_dict.get(d.get('score_breakdown').get('blue').get('bay8')) + panel_dict.get(d.get('score_breakdown').get('blue').get('lowLeftRocketFar')) + panel_dict.get(d.get('score_breakdown').get('blue').get('lowRightRocketFar')) + panel_dict.get(d.get('score_breakdown').get('blue').get('lowLeftRocketNear')) + panel_dict.get(d.get('score_breakdown').get('blue').get('lowRightRocketNear')) + panel_dict.get(d.get('score_breakdown').get('blue').get('midLeftRocketFar')) + panel_dict.get(d.get('score_breakdown').get('blue').get('midLeftRocketNear')) + panel_dict.get(d.get('score_breakdown').get('blue').get('midRightRocketFar')) + panel_dict.get(d.get('score_breakdown').get('blue').get('midRightRocketNear')) + panel_dict.get(d.get('score_breakdown').get('blue').get('topLeftRocketFar')) + panel_dict.get(d.get('score_breakdown').get('blue').get('topLeftRocketNear')) + panel_dict.get(d.get('score_breakdown').get('blue').get('topRightRocketFar')) + panel_dict.get(d.get('score_breakdown').get('blue').get('topRightRocketNear'))  - (int(panel_dict.get(d.get('score_breakdown').get('blue').get('preMatchBay1')) or 0) + int(panel_dict.get(d.get('score_breakdown').get('blue').get('preMatchBay2')) or 0) + int(panel_dict.get(d.get('score_breakdown').get('blue').get('preMatchBay3')) or 0) + int(panel_dict.get(d.get('score_breakdown').get('blue').get('preMatchBay4')) or 0) + int(panel_dict.get(d.get('score_breakdown').get('blue').get('preMatchBay5')) or 0) + int(panel_dict.get(d.get('score_breakdown').get('blue').get('preMatchBay6')) or 0) + int(panel_dict.get(d.get('score_breakdown').get('blue').get('preMatchBay7')) or 0) + int(panel_dict.get(d.get('score_breakdown').get('blue').get('preMatchBay8')) or 0)))
             rTechS.append(panel_dict.get(d.get('score_breakdown').get('red').get('bay1')) + panel_dict.get(d.get('score_breakdown').get('red').get('bay2')) + panel_dict.get(d.get('score_breakdown').get('red').get('bay3')) + panel_dict.get(d.get('score_breakdown').get('red').get('bay4')) + panel_dict.get(d.get('score_breakdown').get('red').get('bay5')) + panel_dict.get(d.get('score_breakdown').get('red').get('bay6')) + panel_dict.get(d.get('score_breakdown').get('red').get('bay7')) + panel_dict.get(d.get('score_breakdown').get('red').get('bay8')) + panel_dict.get(d.get('score_breakdown').get('red').get('lowLeftRocketFar')) + panel_dict.get(d.get('score_breakdown').get('red').get('lowRightRocketFar')) + panel_dict.get(d.get('score_breakdown').get('red').get('lowLeftRocketNear')) + panel_dict.get(d.get('score_breakdown').get('red').get('lowRightRocketNear')) + panel_dict.get(d.get('score_breakdown').get('red').get('midLeftRocketFar')) + panel_dict.get(d.get('score_breakdown').get('red').get('midLeftRocketNear')) + panel_dict.get(d.get('score_breakdown').get('red').get('midRightRocketFar')) + panel_dict.get(d.get('score_breakdown').get('red').get('midRightRocketNear')) + panel_dict.get(d.get('score_breakdown').get('red').get('topLeftRocketFar')) + panel_dict.get(d.get('score_breakdown').get('red').get('topLeftRocketNear')) + panel_dict.get(d.get('score_breakdown').get('red').get('topRightRocketFar')) + panel_dict.get(d.get('score_breakdown').get('red').get('topRightRocketNear'))  - (int(panel_dict.get(d.get('score_breakdown').get('red').get('preMatchBay1')) or 0) + int(panel_dict.get(d.get('score_breakdown').get('red').get('preMatchBay2')) or 0) + int(panel_dict.get(d.get('score_breakdown').get('red').get('preMatchBay3')) or 0) + int(panel_dict.get(d.get('score_breakdown').get('red').get('preMatchBay4')) or 0) + int(panel_dict.get(d.get('score_breakdown').get('red').get('preMatchBay5')) or 0) + int(panel_dict.get(d.get('score_breakdown').get('red').get('preMatchBay6')) or 0) + int(panel_dict.get(d.get('score_breakdown').get('red').get('preMatchBay7')) or 0) + int(panel_dict.get(d.get('score_breakdown').get('red').get('preMatchBay8')) or 0)))
-        except: continue
-    
-    col_names = ['Robot','Traditional_Scoring_High','Traditional_Scoring_Low','Technical_Scoring','Autonomous_Scoring','Endgame','Fouls','Defense']
-    data_2019 = pd.DataFrame(columns = col_names)
-    for match in range(0,len(b1s)):
-        try:
+
             data = [b1s[match],bTradSH[match],bTradSL[match],bTechS[match],bautoT[match],bendG[match][0],bfoulsO[match],bdefO[match]]
             data_2019 = data_2019.append(pd.DataFrame([data],columns = col_names), ignore_index = True)
             data = [b2s[match],bTradSH[match],bTradSL[match],bTechS[match],bautoT[match],bendG[match][1],bfoulsO[match],bdefO[match]]
@@ -86,8 +86,11 @@ def process_2019(eventname: str, serviceAccount) -> dict:
             data_2019 = data_2019.append(pd.DataFrame([data],columns = col_names), ignore_index = True)
             data = [r3s[match],rTradSH[match],rTradSL[match],rTechS[match],rautoT[match],rendG[match][2],rfoulsO[match],rdefO[match]]
             data_2019 = data_2019.append(pd.DataFrame([data],columns = col_names), ignore_index = True)
+
+            match += 1
+
         except: continue
-    
+        
     for stat in data_2019:
         if stat != 'Robot':
             data_2019[stat] = data_2019[stat].astype('float64')
