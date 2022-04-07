@@ -15,6 +15,7 @@ serviceAccount = {"type": "service_account", "project_id": "theta-byte-342416",
                                                        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
                                                        "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/tbapreprocessing%40theta-byte-342416.iam.gserviceaccount.com"}
 
+client = bigquery.Client.from_service_account_info(serviceAccount)
 
 def aggregate_scores(eventName) -> str:
     data = None
@@ -47,11 +48,8 @@ def aggregate_scores(eventName) -> str:
         data['Year'] = year
         # Make index a column
         data.reset_index(inplace=True)
-        print(data)
         # Upload to big query
-        storage_client = storage.Client.from_service_account_info(serviceAccount)
-        bucket = storage_client.get_bucket('theta-byte-342416-kubeflowpipelines-default')
-        bucket.blob(f'robot_scores/{eventName}.csv').upload_from_string(data.to_csv(), 'text/csv')
+        job = client.load_table_from_dataframe(data, f'theta-byte-342416.competitions.{eventName}')
     except: raise ValueError(f'Error during pushing for {eventName}')
     return 'Computed correctly', 200
 

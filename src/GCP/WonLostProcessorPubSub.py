@@ -6,7 +6,7 @@ from google.cloud import pubsub_v1
 import os, json
 from tqdm import tqdm
 
-key_path = 'theta-byte-342416-f0e7aa1587c4.json'
+key_path = 'disco-catcher-346421-20425fa8f8d7.json'
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = key_path
 
 serviceAccount = {  "type": "service_account", "project_id": "theta-byte-342416",
@@ -21,27 +21,30 @@ serviceAccount = {  "type": "service_account", "project_id": "theta-byte-342416"
 
 
 publisher = pubsub_v1.PublisherClient()
-topic_path = publisher.topic_path('theta-byte-342416', 'WonLostProcessorTopic')
+topic_path = publisher.topic_path('disco-catcher-346421', 'WonLostProcessorTopic')
 publish_futures = []
 
 client = storage.Client.from_service_account_info(serviceAccount)
-
-
-for year in [2017, 2018, 2019]:
+import time
+count = 0
+for year in tqdm([2017, 2018, 2019]):
     for match in tqdm(client.list_blobs('theta-byte-342416-kubeflowpipelines-default', prefix=f'pulled_matches/{year}/')): 
         if (len(match.name.split('/')) != 4): continue
         mtype = os.path.basename(match.name).split('_')[-1]
-        if (mtype[:2] != 'qm'): continue
-        payload = json.dumps({
-            "MATCH_NAME": match.name
-        })
-        print(match.name)
-        # When you publish a message, the client returns a future.
-        publish_future = publisher.publish(topic_path, payload.encode("utf-8"))
-        # Non-blocking. Publish failures are handled in the callback function.
-        publish_futures.append(publish_future)
+        if (mtype[:2] == 'qf' or mtype[:2] == 'qm' or mtype[:2] == 'sf' or mtype[:1] == 'f'):
+            payload = json.dumps({
+                "MATCH_NAME": match.name
+            })
+            # When you publish a message, the client returns a future.
+            publish_future = publisher.publish(topic_path, payload.encode("utf-8"))
+            # Non-blocking. Publish failures are handled in the callback function.
+            publish_futures.append(publish_future)
+            count += 1
+            if (count % 5000 == 0):                    
+                # Wait for all the publish futures to resolve before exiting.
+                futures.wait(publish_futures, return_when=futures.ALL_COMPLETED)
+                # print(f"Published messages with error handler to {topic_path}.")
+                print('Publishing')
+                time.sleep(9 * 60) # 9 minutes wait
 
-# Wait for all the publish futures to resolve before exiting.
-futures.wait(publish_futures, return_when=futures.ALL_COMPLETED)
-
-print(f"Published messages with error handler to {topic_path}.")
+print('All done')

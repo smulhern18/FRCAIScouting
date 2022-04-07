@@ -1,6 +1,6 @@
 from google.cloud import bigquery, storage
-import base64, json, os
-import ast
+import base64, json, os, ast
+import pandas as pd
 
 serviceAccount = {"type": "service_account", "project_id": "theta-byte-342416",
                                                        "private_key_id": "3bb0f4e92c48f894e7bb023330fed3247759f1a8",
@@ -13,6 +13,7 @@ serviceAccount = {"type": "service_account", "project_id": "theta-byte-342416",
                                                        "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/tbapreprocessing%40theta-byte-342416.iam.gserviceaccount.com"}
 
 def computeWinLost(matchName):
+    mtype = os.path.basename(matchName).split('_')[-1]
     stclient = storage.Client.from_service_account_info(serviceAccount)
     bqclient = bigquery.Client.from_service_account_info(serviceAccount)
     for blob in stclient.list_blobs('theta-byte-342416-kubeflowpipelines-default', prefix=matchName):
@@ -23,7 +24,7 @@ def computeWinLost(matchName):
         _, year, competition, match = matchName.split('/')
         # Get blue team scores from bigquery
         query_job = bqclient.query(
-            f'SELECT Traditional_Scoring_High,Traditional_Scoring_Low,Technical_Scoring,Autonomous_Scoring,Endgame,Fouls,Defense FROM `theta-byte-342416.competitions.main` WHERE (Competition="{competition}" AND (Robot="{alliances["blue"]["team_keys"][0]}" OR Robot="{alliances["blue"]["team_keys"][1]}" OR Robot="{alliances["blue"]["team_keys"][2]}"))'
+            f'SELECT Traditional_Scoring_High,Traditional_Scoring_Low,Technical_Scoring,Autonomous_Scoring,Endgame,Fouls,Defense FROM `theta-byte-342416.unified.competitions` WHERE (Competition="{competition}" AND (Robot="{alliances["blue"]["team_keys"][0]}" OR Robot="{alliances["blue"]["team_keys"][1]}" OR Robot="{alliances["blue"]["team_keys"][2]}"))'
         )
         stats = list(query_job.result())
         if (len(stats) != 3):  raise ValueError(f'[{matchName}] Did not find 3 teams, but {len(stats)}: {", ".join(stats)}')
@@ -34,7 +35,7 @@ def computeWinLost(matchName):
         kvb = dict(zip(blue_keys, blue))
         # Get red team scores from bigquery
         query_job = bqclient.query(
-            f'SELECT Traditional_Scoring_High,Traditional_Scoring_Low,Technical_Scoring,Autonomous_Scoring,Endgame,Fouls,Defense FROM `theta-byte-342416.competitions.main` WHERE (Competition="{competition}" AND (Robot="{alliances["red"]["team_keys"][0]}" OR Robot="{alliances["red"]["team_keys"][1]}" OR Robot="{alliances["red"]["team_keys"][2]}"))'
+            f'SELECT Traditional_Scoring_High,Traditional_Scoring_Low,Technical_Scoring,Autonomous_Scoring,Endgame,Fouls,Defense FROM `theta-byte-342416.unified.competitions` WHERE (Competition="{competition}" AND (Robot="{alliances["red"]["team_keys"][0]}" OR Robot="{alliances["red"]["team_keys"][1]}" OR Robot="{alliances["red"]["team_keys"][2]}"))'
         )
         stats = list(query_job.result())
         if (len(stats) != 3):  raise ValueError(f'[{matchName}] Did not find 3 teams, but {len(stats)}: {", ".join(stats)}')
@@ -44,7 +45,7 @@ def computeWinLost(matchName):
         red = [x / 3 for x in red]
         kvr = dict(zip(red_keys, red))
         res = {
-            'year': year, 'competition': competition, 'match': match,
+            'year': year, 'competition': competition, 'match': match, 'mtype': mtype,
             'bscore': alliances['blue']['score'],
             'rscore': alliances['red']['score'],
             'blue_won': int(alliances['blue']['score'] > alliances['red']['score']),
@@ -52,14 +53,7 @@ def computeWinLost(matchName):
         }
         res.update(kvb)
         res.update(kvr)
-        # for key in res:
-        #     print(f"{key}:FLOAT,")
-        storage_client = storage.Client.from_service_account_info(serviceAccount)
-        bucket = storage_client.get_bucket('theta-byte-342416-kubeflowpipelines-default')
-        bucket.blob(f'wonlost/{os.path.basename(matchName)}.json').upload_from_string(json.dumps(res), 'text/json')
-
-        # errors = bqclient.insert_rows_json('theta-byte-342416.wonlost.all', [res])
-        # if (len(errors) != 0): raise ValueError('matchName' + ' - '.join(errors) + str(res))
+        job = bqclient.load_table_from_dataframe(pd.DataFrame(data=[res]), f'theta-byte-342416.wonlost.{os.path.basename(matchName)}')
 
 def pubsub_entry(event, context):
     pubsub_message = base64.b64decode(event['data']).decode('utf-8')
@@ -69,5 +63,5 @@ def pubsub_entry(event, context):
     return 'Computed correctly', 200
 
 
-if __name__ == '__main__':
-    computeWinLost('pulled_matches/2017/2017txrm/2017txrm_qm1')
+# if __name__ == '__main__':
+#     computeWinLost('pulled_matches/2018/2018ohmv/2018ohmv_qm7')

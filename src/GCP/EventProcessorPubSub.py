@@ -1,11 +1,13 @@
 from google.cloud import storage
 from concurrent import futures
 from google.cloud import pubsub_v1
-import os
-import json
+import os, json
+from tqdm import tqdm
+import robotScoreAggregator
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
-key_path = 'theta-byte-342416-f0e7aa1587c4.json'
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = key_path
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = 'disco-catcher-346421-20425fa8f8d7.json'
 
 serviceAccount = {"type": "service_account", "project_id": "theta-byte-342416",
                                                        "private_key_id": "3bb0f4e92c48f894e7bb023330fed3247759f1a8",
@@ -21,14 +23,13 @@ storage_client = storage.Client.from_service_account_info(serviceAccount)
 
 
 publisher = pubsub_v1.PublisherClient()
-topic_path = publisher.topic_path('theta-byte-342416', 'EventProcessorTopic')
+topic_path = publisher.topic_path('disco-catcher-346421', 'EventProcessorTopic')
 publish_futures = []
 
-for year in ['2017', '2018', '2019']:
+for year in tqdm(['2019']):
     blobs = storage_client.list_blobs(f"theta-byte-342416-kubeflowpipelines-default", prefix=f"pulled_events/{year}")
-    for entry in blobs:
+    for entry in tqdm(blobs):
         filename = os.path.basename(entry.name)
-        print(filename)
         payload = json.dumps({
             "EVENT_NAME": filename
         })
