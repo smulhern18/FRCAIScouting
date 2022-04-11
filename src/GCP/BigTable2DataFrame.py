@@ -13,7 +13,7 @@ bqclient = bigquery.Client.from_service_account_info(serviceAccount)
 
 # Download query results.
 query_string = """
-SELECT * FROM `theta-byte-342416.unified.competitions`
+SELECT * FROM `theta-byte-342416.unified.wonlost_noqm`
 """
 
 dataframe = (
@@ -22,12 +22,12 @@ dataframe = (
     .to_dataframe()
 )
 
-# from sklearn.model_selection import train_test_split
-# #split the data into train and test set
-# train,test = train_test_split(dataframe, test_size=0.30, random_state=0)
-# #save the data
-# train.to_csv('train.csv',index=False)
-# test.to_csv('test.csv',index=False)
+from sklearn.model_selection import train_test_split
+#split the data into train and test set
+train,test = train_test_split(dataframe, test_size=0.30, random_state=0)
+#save the data
+train.to_csv('train_noqm.csv',index=False)
+test.to_csv('test_noqm.csv',index=False)
 
 
-dataframe.to_csv('competitions.csv')
+dataframe.to_csv('wonlost_noqm.csv')
