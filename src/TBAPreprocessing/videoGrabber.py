@@ -6,7 +6,6 @@ def grab_videos_for_matches(src_path):
     from io import BytesIO
     from google.cloud import storage
     from pytube import YouTube
-    from pytube.exceptions import VideoUnavailable
     import datetime
     global complete
     client = storage.Client.from_service_account_info({"type": "service_account",
