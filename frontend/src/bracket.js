@@ -48,23 +48,24 @@ let coalitions = {
 function computeMatch(round) {
     let firstRound = [[1, 8], [2, 7], [3, 6], [4, 5]]
     let secondRound = [[1, 7], [3, 4]]
-    let thirdRound = [[1, 8]]
+    let thirdRound = [[1, 3]]
+    let finaleWinner = 3
     let res = []
     firstRound.forEach((k, i) => {
-        let nextMatchId = secondRound[parseInt(i/2)].join('') + '-secondRound'
+        let nextMatch = secondRound[parseInt(i/2)]
         res.push({
             "id": `${k.join('')}-firstRound`,
             "tournamentRoundText": "1", // Text for Round Header
-            nextMatchId, // Id for the nextMatch in the bracket, if it's final match it must be null OR undefined
+            "nextMatchId": nextMatch.join('') + '-secondRound', // Id for the nextMatch in the bracket, if it's final match it must be null OR undefined
             "participants": [
               {
                 "id": k[0], // Unique identifier of any kind
-                "isWinner": false,
+                "isWinner": (round > 0) && (nextMatch.includes(k[0])),
                 "name": coalitions[k[0]].join(', ')
               },
               {
                 "id": k[1],
-                "isWinner": false,
+                "isWinner": (round > 0) && (nextMatch.includes(k[1])),
                 "name": coalitions[k[1]].join(', ')
               }
             ]
@@ -74,37 +75,37 @@ function computeMatch(round) {
         let participants = [
             {
               "id": k[0], // Unique identifier of any kind
-              "isWinner": false,
+              "isWinner": (round > 1) && (thirdRound[0].includes(k[0])),
               "name": coalitions[k[0]].join(', ')
             },
             {
               "id": k[1],
-              "isWinner": false,
+              "isWinner": (round > 1) && (thirdRound[0].includes(k[1])),
               "name": coalitions[k[1]].join(', ')
             }
         ]
         res.push({
             "id": k.join('') + '-secondRound',
             "nextMatchId": `${thirdRound[0].join('')}-thirdRound`, // Id for the nextMatch in the bracket, if it's final match it must be null OR undefined
-            "participants": (round % 3 > 0) ? participants : []
+            "participants": (round > 0) ? participants : []
         })
     })
     thirdRound.forEach(k => {
         let participants = [
             {
               "id": k[0], // Unique identifier of any kind
-              "isWinner": false,
+              "isWinner": (round > 2) && finaleWinner == k[0],
               "name": coalitions[k[0]].join(', ')
             },
             {
               "id": k[1],
-              "isWinner": false,
+              "isWinner": (round > 2) && finaleWinner == k[1],
               "name": coalitions[k[1]].join(', ')
             }
         ]
         res.push({
             "id": k.join('') + '-thirdRound',
-            "participants": (round % 3 > 1) ? participants : []
+            "participants": (round > 1) ? participants : []
         })
     })
     return res
@@ -115,34 +116,39 @@ class ComputeForm extends React.Component {
         super(props)
         this.state = {
             data: null,
-            error: null
+            error: null,
+            round: 0
         }
     }
 
     componentDidMount() {
-        this.setState({ data: computeMatch(2) })
         // let url = 'https://raw.githubusercontent.com/Drarig29/brackets-viewer.js/master/demo/db.json'
-        // // url = 'http://localhost/compute/team/3538/competition/2019carv'
-        // fetch(url)
-        // .then(res => res.json())
-        // .then(data => {
-        //     console.log(data)
-        //     this.setState({ data, error: null})
-        // })
-        // .catch(error => {
-        //     this.setState({ error })
-        // })
+        let url = 'http://localhost/compute/team/3538/competition/2019carv'
+        fetch(url)
+        .then(res => res.json())
+        .then(coalitions => {
+            console.log(coalitions)
+            this.setState({ coalitions, error: null })
+        })
+        .catch(error => {
+            this.setState({ error })
+        })
+    }
+
+    nextRound() {
+        this.setState({ round: (this.state.round + 1) % 4 })
     }
 
     render() {
         if (this.state.error !== null) return (<>{this.state.error.message}</>)
-        if (this.state.data === null) return (<>Loading...</>)
+        if (this.state.coalitions === null) return (<>Loading...</>)
         return (
             <>
                 <SingleEliminationBracket
-                  matches={this.state.data}
+                  matches={ computeMatch(this.state.round) }
                   matchComponent={Match}
                 />
+                <button onClick={this.nextRound.bind(this)}>Next Round</button>
             </>
         );
   }
