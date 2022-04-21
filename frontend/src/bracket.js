@@ -2,50 +2,50 @@ import './App.css';
 import React from 'react';
 import { SingleEliminationBracket, Match } from '@g-loot/react-tournament-brackets';
 
-let coalitions = {
-    "1": [
-      "frc364", 
-      "frc6443", 
-      "frc1339"
-    ], 
-    "2": [
-      "frc4911", 
-      "frc1678", 
-      "frc1785"
-    ], 
-    "3": [
-      "frc2990", 
-      "frc330", 
-      "frc4561"
-    ], 
-    "4": [
-      "frc118", 
-      "frc3309", 
-      "frc7419"
-    ], 
-    "5": [
-      "frc7108", 
-      "frc3132", 
-      "frc7426"
-    ], 
-    "6": [
-      "frc386", 
-      "frc7179", 
-      "frc4534"
-    ], 
-    "7": [
-      "frc5892", 
-      "frc2881", 
-      "frc3931"
-    ], 
-    "8": [
-      "frc2147", 
-      "frc368", 
-      "frc1261"
-    ]
-}
+// let coalitions = {
+//     "1": [
+//       "frc364", 
+//       "frc6443", 
+//       "frc1339"
+//     ], 
+//     "2": [
+//       "frc4911", 
+//       "frc1678", 
+//       "frc1785"
+//     ], 
+//     "3": [
+//       "frc2990", 
+//       "frc330", 
+//       "frc4561"
+//     ], 
+//     "4": [
+//       "frc118", 
+//       "frc3309", 
+//       "frc7419"
+//     ], 
+//     "5": [
+//       "frc7108", 
+//       "frc3132", 
+//       "frc7426"
+//     ], 
+//     "6": [
+//       "frc386", 
+//       "frc7179", 
+//       "frc4534"
+//     ], 
+//     "7": [
+//       "frc5892", 
+//       "frc2881", 
+//       "frc3931"
+//     ], 
+//     "8": [
+//       "frc2147", 
+//       "frc368", 
+//       "frc1261"
+//     ]
+// }
 
-function computeMatch(round) {
+function computeMatch(round, coalitions) {
     let firstRound = [[1, 8], [2, 7], [3, 6], [4, 5]]
     let secondRound = [[1, 7], [3, 4]]
     let thirdRound = [[1, 3]]
@@ -115,24 +115,8 @@ class ComputeForm extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            data: null,
-            error: null,
-            round: 0
+            round: 0,
         }
-    }
-
-    componentDidMount() {
-        // let url = 'https://raw.githubusercontent.com/Drarig29/brackets-viewer.js/master/demo/db.json'
-        let url = 'http://localhost/compute/team/3538/competition/2019carv'
-        fetch(url)
-        .then(res => res.json())
-        .then(coalitions => {
-            console.log(coalitions)
-            this.setState({ coalitions, error: null })
-        })
-        .catch(error => {
-            this.setState({ error })
-        })
     }
 
     nextRound() {
@@ -140,12 +124,10 @@ class ComputeForm extends React.Component {
     }
 
     render() {
-        if (this.state.error !== null) return (<>{this.state.error.message}</>)
-        if (this.state.coalitions === null) return (<>Loading...</>)
         return (
             <>
                 <SingleEliminationBracket
-                  matches={ computeMatch(this.state.round) }
+                  matches={ computeMatch(this.state.round, this.props.coalitions) }
                   matchComponent={Match}
                 />
                 <button onClick={this.nextRound.bind(this)}>Next Round</button>
