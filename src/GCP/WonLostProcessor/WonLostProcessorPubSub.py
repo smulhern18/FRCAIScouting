@@ -29,9 +29,9 @@ import time
 count = 0
 for year in tqdm([2017, 2018, 2019]):
     for match in tqdm(client.list_blobs('theta-byte-342416-kubeflowpipelines-default', prefix=f'pulled_matches/{year}/')): 
-        if (len(match.name.split('/')) != 4): continue
+        if len(match.name.split('/')) != 4: continue
         mtype = os.path.basename(match.name).split('_')[-1]
-        if (mtype[:2] == 'qf' or mtype[:2] == 'qm' or mtype[:2] == 'sf' or mtype[:1] == 'f'):
+        if mtype[:2] == 'qf' or mtype[:2] == 'qm' or mtype[:2] == 'sf' or mtype[:1] == 'f':
             payload = json.dumps({
                 "MATCH_NAME": match.name
             })
