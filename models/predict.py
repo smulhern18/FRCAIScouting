@@ -4,7 +4,7 @@ clf = load('models/WonLostMLPClassifier.joblib')
 
 def predict(x):
     x = x.drop(columns=['year', 'competition', 'match', 'mtype', 'bscore', 'rscore', 'red_won', 'blue_won'])
-    y_pred = clf.predict(x.values)
+    y_pred = clf.predict(x)
     return y_pred
 
 if __name__ == '__main__':    
