@@ -39,15 +39,13 @@ def compute(team_num, event_key):
 
     optimized_alliances = optimize(top_8, just_outside, comp)
 
-    return optimized_alliances
-
-    #return app.make_response(optimized_alliances)
+    return app.make_response(optimized_alliances)
 
 
 @app.route('/won_lost/event/<string:event_key>', methods=["GET"])
 def won_lost(event_key, alliances):
 
-    #alliances = dict(request.headers['alliances'])
+    alliances = dict(request.headers['alliances'])
 
     seed1 = alliances['1']
     seed2 = alliances['2']
@@ -300,13 +298,12 @@ def won_lost(event_key, alliances):
         wonlost['f'] = wonlost['sf'][0]
     else:
         wonlost['f'] = wonlost['sf'][1]
-    return wonlost
+
+    return app.make_response(wonlost)
 
 
 
 
 
 if __name__ == "__main__":
-    response = compute('190', '2019necmp')
-    print(won_lost('2019necmp', response))
-    #app.run(host="0.0.0.0", port=80, debug=True)
+    app.run(host="0.0.0.0", port=80, debug=True)
