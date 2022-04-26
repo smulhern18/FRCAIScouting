@@ -1,7 +1,10 @@
+import datetime
+
 from flask import Flask, request
 import pandas as pd
 from app_methods import optimize
 from models.predict import predict
+from pymongo import MongoClient
 
 app = Flask(__name__)
 
@@ -56,7 +59,7 @@ def won_lost(event_key, alliances):
     seed7 = alliances['7']
     seed8 = alliances['8']
 
-    data = pd.read_csv('../data/v1/robots.csv')
+    data = pd.read_csv('../../../data/v1/robots.csv')
     data = data.loc[data["Competition"] == event_key]
 
     seed1 = data.loc[(data["Robot"] == seed1[0]) | (data["Robot"] == seed1[1]) | (data["Robot"] == seed1[2])]
@@ -300,9 +303,6 @@ def won_lost(event_key, alliances):
         wonlost['f'] = wonlost['sf'][1]
 
     return app.make_response(wonlost)
-
-
-
 
 
 if __name__ == "__main__":

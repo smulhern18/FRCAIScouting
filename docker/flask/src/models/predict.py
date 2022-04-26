@@ -10,7 +10,7 @@ def predict(x):
 
 if __name__ == '__main__':    
     print('Running test __main__')
-    data_test = pd.read_csv('../../data/v2/test.csv')
+    data_test = pd.read_csv('../../../../data/v2/test.csv')
     data_test = data_test.loc[data_test['mtype'].str.contains("qm")]
     y_pred = predict(data_test)
     print(y_pred.shape)
