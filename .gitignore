@@ -131,3 +131,4 @@ dmypy.json
 # Jetbrains idea folder
 .idea/
 .DS_Store
+node_modules
