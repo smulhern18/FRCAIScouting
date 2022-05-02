@@ -44,8 +44,8 @@ def compute(team_num, event_key):
     return app.make_response(optimized_alliances)
 
 
-@app.route('/won_lost/event/<string:event_key>', methods=["GET"])
-def won_lost(event_key, alliances):
+@app.route('/won_lost/event/<string:event_key>', methods=["GET", "POST"])
+def won_lost(event_key):
 
     alliances = dict(request.headers['alliances'])
 
