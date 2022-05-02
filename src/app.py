@@ -1,9 +1,11 @@
 from flask import Flask, request
+from flask_cors import CORS
 import pandas as pd
 from app_methods import optimize
 from models.predict import predict
 
 app = Flask(__name__)
+CORS(app, resources={r"*": {"origins": "*"}})
 
 
 @app.route('/compute/team/<string:team_num>/competition/<string:event_key>', methods=["GET"])
