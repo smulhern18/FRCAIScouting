@@ -2,7 +2,7 @@ from flask import Flask, request
 from flask_cors import CORS
 import pandas as pd
 from app_methods import optimize
-from models.predict import predict
+from models.predict import predict_probability
 
 app = Flask(__name__)
 CORS(app, resources={r"*": {"origins": "*"}})
@@ -169,10 +169,14 @@ def won_lost(event_key, alliances):
 
     wonlost = {'qf': [[], [], [], []],
                'sf': [[], []],
-               'f': [[]]}
+               'f': [[]],
+               'qf_probs': [[], [], [], []],
+               'sf_probs': [[], []],
+               'f_probs': [[]]
+    }
 
-    qf1_win = predict(qf1)
-    if qf1_win[0] == 0:
+    qf1_win = predict_probability(qf1)
+    if qf1_win[0] > qf1_win[1]:
         wonlost['qf'][0] = alliances['1']
         sf1['Red_Traditional_Scoring_High'] = [seed1.Traditional_Scoring_High]
         sf1['Red_Traditional_Scoring_Low'] = [seed1.Traditional_Scoring_Low]
@@ -190,9 +194,10 @@ def won_lost(event_key, alliances):
         sf1['Red_Endgame'] = [seed8.Endgame]
         sf1['Red_Fouls'] = [seed8.Fouls]
         sf1['Red_Defense'] = [seed8.Defense]
+    wonlost['qf_probs'][0] = qf1_win
 
-    qf2_win = predict(qf2)
-    if qf2_win[0] == 0:
+    qf2_win = predict_probability(qf2)
+    if qf2_win[0] > qf2_win[1]:
         wonlost['qf'][1] = alliances['4']
         sf1['Blue_Traditional_Scoring_High'] = [seed4.Traditional_Scoring_High]
         sf1['Blue_Traditional_Scoring_Low'] = [seed4.Traditional_Scoring_Low]
@@ -210,9 +215,10 @@ def won_lost(event_key, alliances):
         sf1['Blue_Endgame'] = [seed5.Endgame]
         sf1['Blue_Fouls'] = [seed5.Fouls]
         sf1['Blue_Defense'] = [seed5.Defense]
+    wonlost['qf_probs'][1] = qf2_win
 
-    qf3_win = predict(qf3)
-    if qf3_win[0] == 0:
+    qf3_win = predict_probability(qf3)
+    if qf3_win[0] > qf3_win[1]:
         wonlost['qf'][2] = alliances['3']
         sf2['Blue_Traditional_Scoring_High'] = [seed3.Traditional_Scoring_High]
         sf2['Blue_Traditional_Scoring_Low'] = [seed3.Traditional_Scoring_Low]
@@ -230,9 +236,10 @@ def won_lost(event_key, alliances):
         sf2['Blue_Endgame'] = [seed6.Endgame]
         sf2['Blue_Fouls'] = [seed6.Fouls]
         sf2['Blue_Defense'] = [seed6.Defense]
+    wonlost['qf_probs'][2] = qf3_win
 
-    qf4_win = predict(qf4)
-    if qf4_win[0] == 0:
+    qf4_win = predict_probability(qf4)
+    if qf4_win[0] > qf4_win[1]:
         wonlost['qf'][3] = alliances['2']
         sf2['Red_Traditional_Scoring_High'] = [seed2.Traditional_Scoring_High]
         sf2['Red_Traditional_Scoring_Low'] = [seed2.Traditional_Scoring_Low]
@@ -250,13 +257,14 @@ def won_lost(event_key, alliances):
         sf2['Red_Endgame'] = [seed7.Endgame]
         sf2['Red_Fouls'] = [seed7.Fouls]
         sf2['Red_Defense'] = [seed7.Defense]
+    wonlost['qf_probs'][3] = qf4_win
 
-    sf1_win = predict(sf1)
-    sf2_win = predict(sf2)
+    sf1_win = predict_probability(sf1)
+    sf2_win = predict_probability(sf2)
 
     winner = None
 
-    if sf1_win[0] == 0:
+    if sf1_win[0] > sf1_win:
         wonlost['sf'][0] = wonlost['qf'][0]
         f['Red_Traditional_Scoring_High'] = sf1.Red_Traditional_Scoring_High
         f['Red_Traditional_Scoring_Low'] = sf1.Red_Traditional_Scoring_Low
@@ -274,8 +282,9 @@ def won_lost(event_key, alliances):
         f['Red_Endgame'] = sf1.Blue_Endgame
         f['Red_Fouls'] = sf1.Blue_Fouls
         f['Red_Defense'] = sf1.Blue_Defense
+    wonlost['sf_probs'][0] = sf1_win
 
-    if sf2_win[0] == 0:
+    if sf2_win[0] > sf2_win[1]:
         wonlost['sf'][1] = wonlost['qf'][3]
         f['Blue_Traditional_Scoring_High'] = sf2.Red_Traditional_Scoring_High
         f['Blue_Traditional_Scoring_Low'] = sf2.Red_Traditional_Scoring_Low
@@ -293,13 +302,15 @@ def won_lost(event_key, alliances):
         f['Blue_Endgame'] = sf2.Blue_Endgame
         f['Blue_Fouls'] = sf2.Blue_Fouls
         f['Blue_Defense'] = sf2.Blue_Defense
+    wonlost['sf_probs'][1] = sf2_win
 
-    f_win = predict(f)
+    f_win = predict_probability(f)
 
-    if f_win[0] == 0:
+    if f_win[0] > f_win[1]:
         wonlost['f'] = wonlost['sf'][0]
     else:
         wonlost['f'] = wonlost['sf'][1]
+    wonlost['f_probs'] = f_win
 
     return app.make_response(wonlost)
 
