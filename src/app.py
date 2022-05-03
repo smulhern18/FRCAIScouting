@@ -3,6 +3,7 @@ from flask_cors import CORS
 import pandas as pd
 from app_methods import optimize
 from models.predict import predict_probability
+import json
 
 app = Flask(__name__)
 CORS(app, resources={r"*": {"origins": "*"}})
@@ -46,8 +47,7 @@ def compute(team_num, event_key):
 
 @app.route('/won_lost/event/<string:event_key>', methods=["GET", "POST"])
 def won_lost(event_key):
-
-    alliances = dict(request.headers['alliances'])
+    alliances = json.loads(request.headers['Alliances'])
 
     seed1 = alliances['1']
     seed2 = alliances['2']
@@ -264,7 +264,7 @@ def won_lost(event_key):
 
     winner = None
 
-    if sf1_win[0] > sf1_win:
+    if sf1_win[0] > sf1_win[1]:
         wonlost['sf'][0] = wonlost['qf'][0]
         f['Red_Traditional_Scoring_High'] = sf1.Red_Traditional_Scoring_High
         f['Red_Traditional_Scoring_Low'] = sf1.Red_Traditional_Scoring_Low

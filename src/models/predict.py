@@ -8,11 +8,13 @@ except FileNotFoundError:
 
 
 def predict_probability(x):
-    x = x.drop(columns=['year', 'competition', 'match', 'mtype', 'bscore', 'rscore', 'red_won', 'blue_won'])
-
+    try:
+        x = x.drop(columns=['year', 'competition', 'match', 'mtype', 'bscore', 'rscore', 'red_won', 'blue_won'])
+    except:
+        print('Columns not dropped')
     y = clf.predict_proba(x)
 
-    return y
+    return y[0].tolist()
 
 
 if __name__ == '__main__':    

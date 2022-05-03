@@ -5,11 +5,10 @@ class ComputeForm extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      team: '3538',
-      competition: '2019carv',
+      team: '1218',
+      competition: '2019paphi',
       manualEntry: ''
     }
-    console.log(props)
   }
 
   handleSubmitAuto() {
@@ -18,7 +17,7 @@ class ComputeForm extends React.Component {
     fetch(url)
     .then(res => res.json())
     .then(coalitions => {
-        this.props.handleSubmit(coalitions)
+        this.props.handleSubmit(coalitions, this.state.team, this.state.competition)
     })
     .catch(error => {
         this.setState({ error })
@@ -26,7 +25,7 @@ class ComputeForm extends React.Component {
   }
 
   handleSubmitManual() {
-    this.props.handleSubmit(JSON.parse(this.state.manualEntry))
+    this.props.handleSubmit(JSON.parse(this.state.manualEntry), this.state.team, this.state.competition)
   }
 
   handleChangeCompetition(e) {
@@ -42,7 +41,6 @@ class ComputeForm extends React.Component {
   }
   
   render() {
-    console.log(this.state)
     return (
         <div className="App">
             <header className="App-header">

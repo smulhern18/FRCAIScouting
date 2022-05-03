@@ -16,18 +16,17 @@ class App extends React.Component {
     }
   }
 
-  handleSubmit(coalitions) {
-    this.setState({coalitions})
+  handleSubmit(coalitions, team, competition) {
+    this.setState({coalitions, team, competition})
   }
 
   render() {
-    console.log(this.state.coalitions)
     return (
       <BrowserRouter>
         <Switch>
           <Route exact path="/">
             {(Object.keys(this.state.coalitions).length > 0) ?
-            <Bracket coalitions={this.state.coalitions}/> :
+            <Bracket coalitions={this.state.coalitions} team={this.state.team} competition={this.state.competition}/> :
             <ComputeForm handleSubmit={this.handleSubmit.bind(this)}/>}
           </Route>
         </Switch>
