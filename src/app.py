@@ -4,6 +4,7 @@ import pandas as pd
 from app_methods import optimize
 from models.predict import predict_probability
 import json
+import requests
 
 app = Flask(__name__)
 CORS(app, resources={r"*": {"origins": "*"}})
@@ -22,8 +23,6 @@ def compute(team_num, event_key):
     # Allocate strings
     tba_read_key = 'vSedKwbovtAcDcYzaAl0QjcYwox4xXxC7r5b4zPpNS3X9BC6khgVlGhR3Fox2tYR'
     format_str = f'https://www.thebluealliance.com/api/v3/event/{event_key}/rankings'
-
-    import requests
 
     event_rankings = requests.get(url=format_str, headers={'X-TBA-Auth-Key': tba_read_key})
 
